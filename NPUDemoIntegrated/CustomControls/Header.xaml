@@ -1,0 +1,177 @@
+﻿<UserControl x:Class="NPUDemoIntegrated.CustomControls.Header"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NPUDemoIntegrated.CustomControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="1600"
+             Height="100">
+    <Border Background="Black">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <!--ColumnDefinition Width="220"/-->
+                <ColumnDefinition Width="3.0*"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="80"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid>
+                <Button Grid.Column="0"/><!--add toggle menu button (switch module)-->
+                <Button Background="Transparent" Command="{Binding ToggleMenuCommand}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" BorderThickness="0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding is_menu_open}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Doksan NPU Real-Time Vision AI Demonstration" Foreground="White" FontSize="42" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                <TextBlock Grid.Row="1" Text="Real-time camera input and on-device object detection inference" Foreground="White" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+
+                <Button Background="Transparent" Command="{Binding ToggleMenuCommand}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" BorderThickness="0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding is_menu_open}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+
+            <ToggleButton Grid.Column="2" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="객체 탐지 시작"
+                      Command="{Binding ButtonCommand}">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+
+                <Viewbox>
+                    <TextBlock FontFamily="\Fonts\Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="🔗"/>
+                                <Setter Property="Foreground" Value="{Binding cn_dn}"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                                        <Setter Property="Foreground" Value="{Binding cn_dn}"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                                        <Setter Property="Foreground" Value="LightGray"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                                        <Setter Property="Foreground" Value="DarkGray"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Viewbox>
+            </ToggleButton>
+
+            <Button Grid.Column="3" Command="{Binding ToggleMenuCommand}" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="설정 ...">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+
+                <Viewbox>
+                    <TextBlock Text="⚙️" FontFamily="\Fonts\Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="White"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding is_menu_open}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                        <Setter Property="Foreground" Value="LightGray"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                        <Setter Property="Foreground" Value="DarkGray"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Viewbox>
+            </Button>
+
+            <Button Grid.Column="4" Click="Button_Click" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="닫기">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+
+                <Viewbox>
+                    <TextBlock Text="X" FontFamily="\Fonts\Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="White"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                        <Setter Property="Foreground" Value="LightGray"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                        <Setter Property="Foreground" Value="DarkGray"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Viewbox>
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>
