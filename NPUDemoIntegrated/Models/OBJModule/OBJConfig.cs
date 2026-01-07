@@ -7,11 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public enum ImageMode { RESIZE, PAD }
-public enum ImageSize { S384, S320 }
-
 namespace NPUDemoIntegrated.Models.OBJModule
 {
+    public enum ImageMode { RESIZE, PAD }
+    public enum ImageSize { S384, S320 }
+
     class OBJConfig: SerialConfig
     {
         private bool _is_send_all = true;

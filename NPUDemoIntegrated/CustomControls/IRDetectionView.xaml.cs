@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPUDemoIntegrated.GlobalManagers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,11 +17,11 @@ using System.Windows.Shapes;
 namespace NPUDemoIntegrated.CustomControls
 {
     /// <summary>
-    /// OBJDetectionView.xaml에 대한 상호 작용 논리
+    /// IRDetectionView.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class OBJDetectionView : UserControl
+    public partial class IRDetectionView : UserControl
     {
-        public OBJDetectionView()
+        public IRDetectionView()
         {
             InitializeComponent();
         }

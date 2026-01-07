@@ -19,7 +19,42 @@
             </Grid.ColumnDefinitions>
 
             <Grid>
-                <Button Grid.Column="0"/><!--add toggle menu button (switch module)-->
+                <Button Grid.Column="0" Command="{Binding DataContext.SwitchViewCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                        Foreground="White" FontSize="20" HorizontalAlignment="Center" Margin="10">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderThickness="0" BorderBrush="Red">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.TextAlignment="Center" Margin="10,0,10,0"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="OBJ">
+                                    <Setter Property="Content" Value="Switch ▶ &#xA;IR Detection" />
+                                    <Setter Property="CommandParameter" Value="IR" />
+                                </DataTrigger>
+                                
+                                <DataTrigger Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="IR">
+                                    <Setter Property="Content" Value="Switch ▶ &#xA;OBJ Detection" />
+                                    <Setter Property="CommandParameter" Value="OBJ" />
+                                </DataTrigger>
+                                
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#FF212529"/>
+                                </Trigger>
+
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#FF495057"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
                 <Button Background="Transparent" Command="{Binding ToggleMenuCommand}">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">

@@ -4,28 +4,24 @@ using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
 using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace NPUDemoIntegrated.ViewModels
 {
-    class OBJViewModel
+    class OBJViewModel: BaseViewModel
     {
         private readonly WebCamControl _web_cam_control;
         private readonly OBJSerialService _serialService;
-        private readonly OBJConfig _objConfig;
         private readonly Timer _timer;
         private readonly Stopwatch _stopwatch = new Stopwatch();
+
+        public OBJConfig objConfig { get; }
 
         private BitmapSource _bitmap;
         private BitmapSource _bitmap_sent;
@@ -38,7 +34,6 @@ namespace NPUDemoIntegrated.ViewModels
         private bool _is_sending = false;
         private int _try_count = 0;
         private double _fps = 0.0;
-        private bool _is_menu_open = false;
 
         //for test
         private bool _test_flag = false;
@@ -47,14 +42,11 @@ namespace NPUDemoIntegrated.ViewModels
         private readonly object _bbox_lock = new object();
         private readonly object _send_lock = new object();
 
-        public ICommand ConnectCommand { get; }
-        public ICommand DisconnectCommand { get; }
+        public override ICommand ConnectCommand { get; }
+        public override ICommand DisconnectCommand { get; }
         public ICommand SendCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand LoadCommand { get; }
-        public ICommand ToggleMenuCommand { get; private set; }
-
-        private ICommand _buttonCommand;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -63,7 +55,7 @@ namespace NPUDemoIntegrated.ViewModels
         public OBJViewModel(OBJConfig config, OBJSerialService service)
         {
             _serialService = service;
-            _objConfig = config;
+            objConfig = config;
             //_viewModelId = DateTime.Now.ToString("\nInstance Creadted Time == HH:mm:ss.fff\n");
             //Debug.Write($"{_viewModelId}");
 
@@ -75,21 +67,19 @@ namespace NPUDemoIntegrated.ViewModels
             _serialService.PointsReceived += OnPointsReceived;
             _serialService.StatusChanged += OnStatusChanged;
 
-            ToggleMenuCommand = new RelayCommand(param => {
-                is_menu_open = !is_menu_open;
-            });
-
             ConnectCommand = new RelayCommand(param => {
                 if (_serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
                 if (is_menu_open) is_menu_open = !is_menu_open;
                 //Debug.Write("\nConnect button clicked");
             });
+
             DisconnectCommand = new RelayCommand(param => {
                 Task.Run(() => _serialService.Disconnect());
                 ButtonCommand = ConnectCommand;
                 if (is_menu_open) is_menu_open = !is_menu_open;
                 //Debug.Write("\nDisconnect button clicked");
             });
+
             ButtonCommand = ConnectCommand;
 
             SendCommand = new RelayCommand(async param => {
@@ -104,7 +94,7 @@ namespace NPUDemoIntegrated.ViewModels
             });
 
             LoadCommand = new RelayCommand(param => {
-                InitializeManager.InitializeProgram();
+                GlobalConfigManager.Instance.LoadConfig();
             });
 
             _timer = new Timer(async (_) => await SendFramePeriodically(), null, Timeout.Infinite, Timeout.Infinite);
@@ -150,7 +140,7 @@ namespace NPUDemoIntegrated.ViewModels
                 }
 
                 Mat resized;
-                if (_objConfig.img_mode == ImageMode.RESIZE)
+                if (objConfig.img_mode == ImageMode.RESIZE)
                 {
                     resized = Resize(mat_tmp);
                 }
@@ -344,7 +334,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
-            int size = _objConfig.img_size == ImageSize.S320 ? 320 : 384;
+            int size = objConfig.img_size == ImageSize.S320 ? 320 : 384;
             OpenCvSharp.Size newSize = new OpenCvSharp.Size(size, size);
 
             Mat resizedImage = new Mat();
@@ -357,7 +347,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             GlobalLogManager.Instance.ConsoleLog("Padding bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Padding bbox Image ...");
-            int size = _objConfig.img_size == ImageSize.S320 ? 320 : 384;
+            int size = objConfig.img_size == ImageSize.S320 ? 320 : 384;
             Scalar color = new Scalar(0, 0, 0); // Black padding
 
             double w = src.Width;
@@ -427,16 +417,6 @@ namespace NPUDemoIntegrated.ViewModels
             set { _fps = value; OnPropertyChanged(); }
         }
 
-        public ICommand ButtonCommand
-        {
-            get => _buttonCommand;
-            set
-            {
-                _buttonCommand = value;
-                OnPropertyChanged();
-            }
-        }
-
         public bool is_send_auto
         {
             get => _is_sent_auto;
@@ -458,13 +438,7 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        public bool is_menu_open
-        {
-            get => _is_menu_open;
-            set { _is_menu_open = value; OnPropertyChanged(); }
-        }
-
-        public void Dispose()
+        public override void Dispose()
         {
             _timer.Dispose();
             _web_cam_control.FrameUpdate -= OnFrameUpdate;
@@ -473,10 +447,6 @@ namespace NPUDemoIntegrated.ViewModels
             _web_cam_control.Dispose();
             if (_frame_to_draw != null) _frame_to_draw.Dispose();
             if (_frame_to_send != null) _frame_to_send.Dispose();
-        }
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

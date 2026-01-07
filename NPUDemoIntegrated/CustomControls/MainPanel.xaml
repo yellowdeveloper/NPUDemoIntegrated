@@ -11,13 +11,15 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="100"/>
                 </Grid.RowDefinitions>
 
-                <local:ObjDetectionView Grid.Row="0"/>
-                <local:Footer Grid.Row="1"/>
+                <ContentPresenter Grid.Row="0" 
+                              Content="{Binding currentContext}"/>
 
+                <local:Footer Grid.Row="1"/>
             </Grid>
+            
         </Grid>
     </Border>
 </UserControl>

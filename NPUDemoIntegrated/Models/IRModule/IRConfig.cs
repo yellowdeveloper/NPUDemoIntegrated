@@ -9,8 +9,11 @@ namespace NPUDemoIntegrated.Models.IRModule
     class IRConfig : SerialConfig
     {
         private int _numOfData = 1025;
+
         private float _minTemp = 20.0f;
         private float _maxTemp = 40.0f;
+
+        private int _resolution = 32;
 
         public int numOfData
         {
@@ -26,6 +29,11 @@ namespace NPUDemoIntegrated.Models.IRModule
         {
             get { return _maxTemp; }
             set { _maxTemp = value; OnPropertyChanged(); }
+        }
+        public int resolution
+        {
+            get { return _resolution; }
+            set { _resolution = value; OnPropertyChanged(); }
         }
     }
 }

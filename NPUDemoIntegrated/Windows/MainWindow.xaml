@@ -7,10 +7,24 @@
         xmlns:viewModels="clr-namespace:NPUDemoIntegrated.ViewModels"
         xmlns:local="clr-namespace:NPUDemoIntegrated"
         mc:Ignorable="d"
-        Title="Doksan-NPU Demo" Height="900" Width="1600">
+        Title="Doksan-NPU Demo" Height="900" Width="1600" WindowStyle="None" ResizeMode="CanMinimize">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewModels:OBJViewModel}">
+            <customControls:OBJDetectionView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModels:IRViewModel}">
+            <customControls:IRDetectionView />
+        </DataTemplate>
+    </Window.Resources>
+    
+    <Window.DataContext>
+        <viewModels:MainViewModel/>
+    </Window.DataContext>
+    
     <Border Name="main" BorderThickness="1" BorderBrush="LightGray" Margin="0">
         <DockPanel>
-            <customControls:Header DockPanel.Dock="Top" PreviewMouseDown="HeaderView_PreviewMouseDown"/>
+            <customControls:Header DockPanel.Dock="Top" PreviewMouseDown="HeaderView_PreviewMouseDown" DataContext="{Binding currentContext}"/>
             <customControls:MainPanel DockPanel.Dock="Bottom"/>
         </DockPanel>
     </Border>

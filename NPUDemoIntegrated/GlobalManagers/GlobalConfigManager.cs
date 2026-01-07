@@ -96,8 +96,8 @@ namespace NPUDemoIntegrated.GlobalManagers
                 GlobalLogManager.Instance.ConsoleLog("No Config File Found!! Creating Config File ... ");
                 return;
             }
-            MapControlToIni(configFilePath, "OBJConfigInfo", objConfig);
-            MapControlToIni(configFilePath, "IRConfigInfo", irConfig);
+            MapIniToControl(configFilePath, "OBJConfigInfo", objConfig);
+            MapIniToControl(configFilePath, "IRConfigInfo", irConfig);
         }
 
         public void SaveConfig()

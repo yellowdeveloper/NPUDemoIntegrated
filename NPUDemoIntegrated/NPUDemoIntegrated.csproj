@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -15,6 +15,28 @@
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
     <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.11.0.20250507" />
     <PackageReference Include="System.IO.Ports" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include=".\Fonts\GmarketSansTTFBold.ttf" />
+    <Resource Include=".\Fonts\GmarketSansTTFLight.ttf" />
+    <Resource Include=".\Fonts\GmarketSansTTFMedium.ttf" />
+	  
+    <Resource Include=".\Fonts\NanumSquareNeo-aLt.ttf" />
+    <Resource Include=".\Fonts\NanumSquareNeo-bRg.ttf" />
+    <Resource Include=".\Fonts\NanumSquareNeo-cBd.ttf" />
+    <Resource Include=".\Fonts\NanumSquareNeo-dEb.ttf" />
+    <Resource Include=".\Fonts\NanumSquareNeo-eHv.ttf" />
+	  
+    <Resource Include=".\Fonts\Pretendard-Black.ttf" />
+    <Resource Include=".\Fonts\Pretendard-Bold.ttf" />
+    <Resource Include=".\Fonts\Pretendard-ExtraBold.ttf" />
+    <Resource Include=".\Fonts\Pretendard-ExtraLight.ttf" />
+    <Resource Include=".\Fonts\Pretendard-Light.ttf" />
+    <Resource Include=".\Fonts\Pretendard-Medium.ttf" />
+    <Resource Include=".\Fonts\Pretendard-Regular.ttf" />
+    <Resource Include=".\Fonts\Pretendard-SemiBold.ttf" />
+    <Resource Include=".\Fonts\Pretendard-Thin.ttf" />
   </ItemGroup>
 
 </Project>

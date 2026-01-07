@@ -19,10 +19,17 @@ namespace NPUDemoIntegrated.ViewModels
         public IRViewModel IRVM { get; }
 
         private object _currentContext;
+        private string _currentViewName;
         public object currentContext
         {
             get { return _currentContext; }
             set { _currentContext = value; OnPropertyChanged(); }
+        }
+        
+        public string currentViewName
+        {
+            get => _currentViewName;
+            set { _currentViewName = value; OnPropertyChanged(); }
         }
 
         public ICommand SwitchViewCommand { get; }
@@ -43,12 +50,21 @@ namespace NPUDemoIntegrated.ViewModels
 
             // --- Init ViewModel Status ---
             currentContext = OBJVM;
+            currentViewName = "OBJ";
 
             // --- Set Command ---
             SwitchViewCommand = new RelayCommand(param =>
             {
-                if (param.ToString() == "OBJ") currentContext = OBJVM;
-                else if (param.ToString() == "IR") currentContext = IRVM;
+                if (param.ToString() == "OBJ")
+                {
+                    currentContext = OBJVM;
+                    currentViewName = "OBJ";
+                }
+                else if (param.ToString() == "IR")
+                {
+                    currentContext = IRVM;
+                    currentViewName = "IR";
+                }
             });
         }
     }

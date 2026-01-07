@@ -17,11 +17,11 @@ using System.Windows.Shapes;
 namespace NPUDemoIntegrated.CustomControls
 {
     /// <summary>
-    /// ConfigPanel_Side_.xaml에 대한 상호 작용 논리
+    /// IRConfigPanel_Side_.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class OBJConfigPanel_Side_ : UserControl
+    public partial class IRConfigPanel_Side_ : UserControl
     {
-        public OBJConfigPanel_Side_()
+        public IRConfigPanel_Side_()
         {
             InitializeComponent();
         }
@@ -37,12 +37,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.portName;
+                text_box.Text = GlobalConfigManager.Instance.irConfig.portName;
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.portName = text_box.Text;
+                GlobalConfigManager.Instance.irConfig.portName = text_box.Text;
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -51,12 +51,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.baudRate.ToString();
+                text_box.Text = GlobalConfigManager.Instance.irConfig.baudRate.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.baudRate = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.irConfig.baudRate = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -66,44 +66,29 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.dataBits.ToString();
+                text_box.Text = GlobalConfigManager.Instance.irConfig.dataBits.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.dataBits = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.irConfig.dataBits = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
-
-        private void PacketTextBox_LostFocus(object sender, RoutedEventArgs e)
+        private void NumOfDatTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.chunk_size.ToString();
+                text_box.Text = GlobalConfigManager.Instance.irConfig.numOfData.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.chunk_size = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.irConfig.numOfData = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
 
-        private void ProbTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            var text_box = sender as TextBox;
-            if (string.IsNullOrWhiteSpace(text_box.Text))
-            {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.prob_thres.ToString();
-                text_box.Foreground = Brushes.Gray;
-            }
-            else
-            {
-                GlobalConfigManager.Instance.objConfig.prob_thres = Convert.ToInt32(text_box.Text);
-                text_box.Foreground = Brushes.Gray;
-            }
-        }
     }
 }
