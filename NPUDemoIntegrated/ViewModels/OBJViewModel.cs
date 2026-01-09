@@ -45,12 +45,11 @@ namespace NPUDemoIntegrated.ViewModels
         public override ICommand ConnectCommand { get; }
         public override ICommand DisconnectCommand { get; }
         public ICommand SendCommand { get; }
-        public ICommand SaveCommand { get; }
-        public ICommand LoadCommand { get; }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        //private string _viewModelId;
+        public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
+        public override string subTitle => "Real-time camera input and on-device object detection inference";
 
         public OBJViewModel(OBJConfig config, OBJSerialService service)
         {
@@ -87,14 +86,6 @@ namespace NPUDemoIntegrated.ViewModels
                 await SendFramePeriodically();
                 if (is_menu_open) is_menu_open = !is_menu_open;
                 // GlobalLogManager.Instance.ConsoleLog("Manual Send Completed");
-            });
-
-            SaveCommand = new RelayCommand(param => {
-                GlobalConfigManager.Instance.SaveConfig();
-            });
-
-            LoadCommand = new RelayCommand(param => {
-                GlobalConfigManager.Instance.LoadConfig();
             });
 
             _timer = new Timer(async (_) => await SendFramePeriodically(), null, Timeout.Infinite, Timeout.Infinite);
@@ -140,7 +131,7 @@ namespace NPUDemoIntegrated.ViewModels
                 }
 
                 Mat resized;
-                if (objConfig.img_mode == ImageMode.RESIZE)
+                if (objConfig.img_mode == EImageMode.RESIZE)
                 {
                     resized = Resize(mat_tmp);
                 }
@@ -206,7 +197,7 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        private void OnPointsReceived(List<OpenCvSharp.Rect> b_box, List<OBJConfig.ClassArray> cls, List<int> prob)
+        private void OnPointsReceived(List<OpenCvSharp.Rect> b_box, List<OBJConfig.EClassArray> cls, List<int> prob)
         {
             string save_path = Path.Combine(GlobalConfigManager.Instance.GetImageFolderPath(), GlobalConfigManager.Instance.GetNowImageFileName());
             GlobalLogManager.Instance.ConsoleLog($"OK.. Points Received ... Drawing Bbox");
@@ -262,7 +253,7 @@ namespace NPUDemoIntegrated.ViewModels
             // frame_to_draw.Dispose();
         }
 
-        private OpenCvSharp.Rect DrawTextWithBox(Mat frame, OBJConfig.ClassArray cls, int prob, OpenCvSharp.Rect box)
+        private OpenCvSharp.Rect DrawTextWithBox(Mat frame, OBJConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
         {
             string text = $"class: {cls.ToString()}  prob: {prob}";
             var font = HersheyFonts.HersheyTriplex;
@@ -334,7 +325,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
-            int size = objConfig.img_size == ImageSize.S320 ? 320 : 384;
+            int size = objConfig.img_size == EImageSize.S320 ? 320 : 384;
             OpenCvSharp.Size newSize = new OpenCvSharp.Size(size, size);
 
             Mat resizedImage = new Mat();
@@ -347,7 +338,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             GlobalLogManager.Instance.ConsoleLog("Padding bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Padding bbox Image ...");
-            int size = objConfig.img_size == ImageSize.S320 ? 320 : 384;
+            int size = objConfig.img_size == EImageSize.S320 ? 320 : 384;
             Scalar color = new Scalar(0, 0, 0); // Black padding
 
             double w = src.Width;
@@ -436,6 +427,12 @@ namespace NPUDemoIntegrated.ViewModels
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
             }
+        }
+
+        public override void DeactivateModule(ModuleType targetModule)
+        {
+            _serialService.SendModuleChangeNotice(targetModule);
+            _serialService?.Disconnect();
         }
 
         public override void Dispose()

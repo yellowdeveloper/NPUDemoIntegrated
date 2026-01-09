@@ -7,219 +7,59 @@ using System.Text;
 
 namespace NPUDemoIntegrated.Models.OBJModule
 {
-    class OBJSerialService
+    class OBJSerialService: BaseSerialService<OBJConfig>
     {
-        private readonly OBJConfig _config;
-        public OBJSerialService(OBJConfig config)
-        {
-            _config = config;
-        }
+        public OBJSerialService(OBJConfig config) : base(config) { }
 
         // UART rx and tx separate
-        private SerialPort sp_comm = new SerialPort();
-        private SerialPort sp_debug = new SerialPort();
+        private SerialPort spComm = new SerialPort();
+        private SerialPort spDebug = new SerialPort();
 
         private FTDI _ftdi = new FTDI();
-        private bool _isConnected = false;
 
         private List<byte> received_buffer = new List<byte>();
         private List<byte> pure_data = new List<byte>();
 
-        public event Action<List<Rect>, List<OBJConfig.ClassArray>, List<int>> PointsReceived;
+        public event Action<List<Rect>, List<OBJConfig.EClassArray>, List<int>> PointsReceived;
         public event Action<string> StatusChanged;
 
         private int fragment_index;
         private byte[] image_to_send;
-
-        private int data_length = 0;
-        private int footer_try_cnt = 0;
+        private int footerTryCnt = 0;
 
         private readonly object _rc_lock = new object();
 
-        static readonly byte[] header = { 0x10, 0x01, 0x10, 0x01 };
-        static readonly byte[] footer = { 0x0D, 0x0A, 0x0D, 0x0A };
-
-        private ConnectionState connectionState = ConnectionState.Disconnected;
-        enum ConnectionState
-        {
-            Disconnected,
-            Connecting,
-            Connected,
-            SendingImage,
-            WaitingForInference,
-            ProceesingBuffer
-        }
+        private EConnectionState connectionState = EConnectionState.Disconnected;
 
         public int Connect()
         {
-            try
+            int spiStat = 0;
+            int spCommStat = 0;
+
+            if (_config.is_spi_enable)
             {
-                if (_config.is_spi_enable == true) Connect_SPI();
-            }
-            catch (Exception ex)
-            {
-                GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error while Connecting SPI{ex}");
-                GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error while Connecting SPI{ex}");
-
-                return 0;
-            }
-
-            if (!sp_comm.IsOpen)
-            {
-                try
-                {
-                    GlobalLogManager.Instance.ConsoleLog("Connecting to Serial Port(Common)...");
-
-                    sp_comm.PortName  = _config.portName;
-                    sp_comm.BaudRate  = _config.baudRate;
-                    sp_comm.Parity    = _config.parity;
-                    sp_comm.DataBits  = _config.dataBits;
-                    sp_comm.StopBits  = _config.stopBits;
-
-                    sp_comm.DataReceived += OnSerialReceived; // test with tx remove later --> No, We now use UART rx with SPI
-
-                    sp_comm.Open();
-
-                    //sp_tx.Write(new byte[] { 0x10, 0x01, 0x10, 0x01 }, 0, 4);
-                    //connectionState = ConnectionState.Connecting; // No need to check Status (Connecting)
-                    //StatusChanged?.Invoke("Connecting");
-                    connectionState = ConnectionState.Connected;
-                    StatusChanged?.Invoke("Connected");
-
-                    GlobalLogManager.Instance.ConsoleLog($"Port(Common) Opend. :: {connectionState}");
-                    GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Port(Common) Opend. :: {connectionState}");
-                }
-                catch (Exception ex)
-                {
-                    GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error while opending Port(Common){ex}");
-                    GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error while opending Port(Common){ex}");
-
-                    return 0;
-                }
+                spiStat = base.SPIConnect(_ftdi);
             }
             else
             {
-                GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error while opending Port(Common),Port Already Opened");
-                GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error while opending Port(Common), Port Already Opened");
+                spiStat = 1;
             }
-            return 1;
-        }
+            
+            spCommStat = base.SerialConnect(spComm);
 
-        public int Connect_SPI()
-        {
-            if (_isConnected) return 1;
-
-            uint devCount = 0;
-            _ftdi.GetNumberOfDevices(ref devCount);
-
-            if (devCount == 0)
+            if (spiStat == 1 && spCommStat == 1)
             {
-                GlobalLogManager.Instance.ConsoleLog("No FTDI devices found.");
-                return 0;
-            }
-
-            // Get FTDI Device List
-            FTDI.FT_DEVICE_INFO_NODE[] deviceList = new FTDI.FT_DEVICE_INFO_NODE[devCount];
-            _ftdi.GetDeviceList(deviceList);
-
-            int targetIndex = -1;
-
-            // Find FT232H or RS232-HS
-            for (int i = 0; i < devCount; i++)
-            {
-                GlobalLogManager.Instance.ConsoleLog($"Device [{i}]: {deviceList[i].Description} (Type: {deviceList[i].Type})");
-
-                if (deviceList[i].Description.Contains("RS232-HS") || deviceList[i].Type == FTDI.FT_DEVICE.FT_DEVICE_232H)
-                {
-                    targetIndex = i;
-                    break;
-                }
-            }
-
-            if (targetIndex == -1)
-            {
-                GlobalLogManager.Instance.ConsoleLog("ERROR: FT232H (High Speed) device not found!");
-                return 0;
-            }
-
-            // Open Divice with Target Index
-            FTDI.FT_STATUS status = _ftdi.OpenByIndex((uint)targetIndex);
-            if (status != FTDI.FT_STATUS.FT_OK)
-            {
-                GlobalLogManager.Instance.ConsoleLog($"Open Failed for Index {targetIndex}: {status}");
-                return 0;
-            }
-
-            try
-            {
-                // Device Init
-                _ftdi.ResetDevice();
-                _ftdi.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
-
-                _ftdi.SetCharacters(0, false, 0, false);
-                _ftdi.SetTimeouts(1000, 1000);
-                _ftdi.SetLatency(1);
-                _ftdi.SetFlowControl(FTDI.FT_FLOW_CONTROL.FT_FLOW_RTS_CTS, 0x00, 0x00);
-
-                // Set to MPSSE Mode
-                status = _ftdi.SetBitMode(0x00, 0x02);
-                if (status != FTDI.FT_STATUS.FT_OK)
-                {
-                    GlobalLogManager.Instance.ConsoleLog($"SetBitMode Failed: {status}");
-                    _ftdi.Close();
-                    return 0;
-                }
-
-                Thread.Sleep(50);
-
-                // MPSSE Setting
-                if (!MPSSEConfig())
-                {
-                    GlobalLogManager.Instance.ConsoleLog("MPSSE Configuration Failed.");
-                    _ftdi.Close();
-                    return 0;
-                }
-
-                _isConnected = true;
-                GlobalLogManager.Instance.ConsoleLog($"FTDI SPI Connected to {deviceList[targetIndex].Description}");
+                connectionState = EConnectionState.Connected;
                 StatusChanged?.Invoke("Connected");
-                return 1;
+                GlobalLogManager.Instance.ConsoleLog($"OK.. All stats good!, Connected To all the Ports");
             }
-            catch (Exception ex)
+            else
             {
-                GlobalLogManager.Instance.ConsoleLog($"Error in Connect_SPI: {ex.Message}");
-                _ftdi.Close();
-                return 0;
+                GlobalLogManager.Instance.ConsoleLog($"ERROR!! Serial stat :: {spCommStat} & SPI stat :: {spiStat} \nDisconnect from all ...");
+                Disconnect();
             }
-        }
-
-        private bool MPSSEConfig()
-        {
-            List<byte> cmd = new List<byte>();
-            uint bytesWritten = 0;
-
-            // FT232H setting
-            cmd.Add(0x8A); // Disable Divide by 5 (60MHz Master Clock) 
-            cmd.Add(0x97); // Adaptive Clocking:: Enable = 0x96 || Disable = 0x97
-            cmd.Add(0x8D); // Disable 3-Phase Data Clocking
-
-            // Clock Setting
-            // 30MHz = 60MHz / ((1 + Divisor) * 2) => Divisor = 0
-            cmd.Add(0x86); // Set Clock Divisor 
-            cmd.Add(0x00); // ValL
-            cmd.Add(0x00); // ValH
-
-            // Pin Direction Setting (Low Byte: ADBUS)
-            cmd.Add(0x80); // 0x80
-            cmd.Add(0x08); // Value: CS=1, SK=0
-            cmd.Add(0xFB);  // Dir: SK/DO/CS=Out, DI=In
-
-            // Send Setup Packet
-            FTDI.FT_STATUS status = _ftdi.Write(cmd.ToArray(), cmd.Count, ref bytesWritten);
-            if (status != FTDI.FT_STATUS.FT_OK) return false;
-
-            Thread.Sleep(20);
-            return true;
+            
+            return spiStat & spCommStat;
         }
 
         public Task SerialCommunication(Mat frame)
@@ -227,9 +67,9 @@ namespace NPUDemoIntegrated.Models.OBJModule
             return Task.Run(() => {
                 lock (_rc_lock)
                 {
-                    if (sp_comm.IsOpen)
+                    if (spComm.IsOpen)
                     {
-                        sp_comm.DiscardInBuffer();
+                        spComm.DiscardInBuffer();
                     }
                     received_buffer.Clear();
                     pure_data.Clear();
@@ -240,7 +80,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
                 // Cv2.ImEncode(".jpg", frame, out image_to_send);
                 // JPG = compressed foramt >> Encode to bmp. But, bmp contains header info >> Do not use ImEncode
-                int img_size = (_config.img_size == ImageSize.S384) ? 442368 : 307200;
+                int img_size = (_config.img_size == EImageSize.S384) ? 442368 : 307200;
                 if (image_to_send == null || image_to_send.Length != img_size)
                 {
                     image_to_send = new byte[img_size];
@@ -258,7 +98,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                 else Marshal.Copy(frame.Data, image_to_send, 0, image_to_send.Length); // fix 
 
                 fragment_index = 0;
-                connectionState = ConnectionState.SendingImage;
+                connectionState = EConnectionState.SendingImage;
                 StatusChanged?.Invoke("SendingImage");
 
                 if (_config.is_spi_enable == true) SendImageFragment_SPI();
@@ -266,17 +106,17 @@ namespace NPUDemoIntegrated.Models.OBJModule
             });
         }
 
-        private void OnSerialReceived(object sender, SerialDataReceivedEventArgs e)
+        protected override void OnSerialReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            if (!sp_comm.IsOpen) return;
+            if (!spComm.IsOpen) return;
 
             try
             {
                 lock (_rc_lock)
                 {
-                    int bytes_to_read = sp_comm.BytesToRead;
+                    int bytes_to_read = spComm.BytesToRead;
                     byte[] buffer = new byte[bytes_to_read];
-                    int actually_read = sp_comm.Read(buffer, 0, bytes_to_read);
+                    int actually_read = spComm.Read(buffer, 0, bytes_to_read);
 
                     if (actually_read > 0) received_buffer.AddRange(buffer.Take(actually_read));
 
@@ -290,7 +130,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     FindData();
                     if (pure_data.Count >= 1)
                     {
-                        footer_try_cnt = 0;
+                        footerTryCnt = 0;
                         ProcessReceivedBuffer();
                         pure_data.Clear();
                     }
@@ -305,13 +145,13 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
         private void OnSerialReceived_Debug(object sender, SerialDataReceivedEventArgs e)
         {
-            if (!sp_debug.IsOpen) return;
+            if (!spDebug.IsOpen) return;
 
             try
             {
-                int bytes_to_read = sp_debug.BytesToRead; // Test with tx change to rx later
+                int bytes_to_read = spDebug.BytesToRead; // Test with tx change to rx later
                 byte[] buffer = new byte[bytes_to_read];
-                sp_debug.Read(buffer, 0, bytes_to_read);  // Test with tx change to rx later
+                spDebug.Read(buffer, 0, bytes_to_read);  // Test with tx change to rx later
 
                 GlobalLogManager.Instance.ConsoleLog($"DEBUG PORT: Received Bytes Length: {buffer.Length}\n");
 
@@ -332,21 +172,46 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
         private void ProcessReceivedBuffer()
         {
-            if (connectionState != ConnectionState.WaitingForInference)
+            if (connectionState != EConnectionState.WaitingForInference)
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! connectionState Error State:: {connectionState}");
                 return;
             }
 
-            connectionState = ConnectionState.ProceesingBuffer;
+            connectionState = EConnectionState.ProceesingBuffer;
             StatusChanged?.Invoke("ProcessingBuffer");
 
             int detected_cnt = pure_data[0];
+            pure_data.RemoveAt(0); 
 
-            pure_data.RemoveAt(0); // remove command byte from buffer
             List<Rect> received_rects = new List<Rect>();
-            List<OBJConfig.ClassArray> received_cls = new List<OBJConfig.ClassArray>();
+            List<OBJConfig.EClassArray> received_cls = new List<OBJConfig.EClassArray>();
             List<int> received_probs = new List<int>();
+
+            int modelType = pure_data[pure_data.Count - 9];
+
+            if (modelType != 0)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 0");
+                return;
+            }
+
+            byte[] voltageByte = new byte[4];
+            voltageByte[0] = pure_data[pure_data.Count - 8];
+            voltageByte[1] = pure_data[pure_data.Count - 7];
+            voltageByte[2] = pure_data[pure_data.Count - 6];
+            voltageByte[3] = pure_data[pure_data.Count - 5];
+            
+            byte[] ampereByte = new byte[4];
+            ampereByte[0] = pure_data[pure_data.Count - 4];
+            ampereByte[1] = pure_data[pure_data.Count - 3];
+            ampereByte[2] = pure_data[pure_data.Count - 2];
+            ampereByte[3] = pure_data[pure_data.Count - 1];
+
+            pure_data.RemoveRange(pure_data.Count - 9, 9);
+
+            float voltage = ConvertByteArray(voltageByte);
+            float ampere = ConvertByteArray(ampereByte);
 
             for (int i = 0; i < detected_cnt; i++)
             {
@@ -367,12 +232,12 @@ namespace NPUDemoIntegrated.Models.OBJModule
                 int w_new = w;
                 int h_new = h;
 
-                if (_config.img_mode == ImageMode.RESIZE)
+                if (_config.img_mode == EImageMode.RESIZE)
                 {
                     double ratio_x;
                     double ratio_y;
 
-                    if (_config.img_size == ImageSize.S320)
+                    if (_config.img_size == EImageSize.S320)
                     {
                         ratio_x = 640.0f / 320.0f;
                         ratio_y = 480.0f / 320.0f;
@@ -396,7 +261,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     double ratio;
                     int y_pad;
 
-                    if (_config.img_size == ImageSize.S320)
+                    if (_config.img_size == EImageSize.S320)
                     {
                         ratio = 640.0f / 320.0f;
                         y_pad = (int)((320 - 480 * (320.0f / 640.0f)) / 2); // == 40
@@ -415,20 +280,19 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     GlobalLogManager.Instance.ConsoleLog($"After Resize :: x={x_new}, y={y_new}, w={w_new}, h={h_new}");
                 }
 
-
                 GlobalLogManager.Instance.ConsoleLog($"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
 
                 if (prob >= _config.prob_thres && cls == 0)
                 {
-                    received_cls.Add((OBJConfig.ClassArray)cls);
+                    received_cls.Add((OBJConfig.EClassArray)cls);
                     received_probs.Add(prob);
                     received_rects.Add(new Rect(x_new, y_new, w_new, h_new));
                 }
             }
             PointsReceived?.Invoke(received_rects, received_cls, received_probs);
 
-            connectionState = ConnectionState.Connected;
+            connectionState = EConnectionState.Connected;
             StatusChanged?.Invoke("Connected");
         }
 
@@ -436,37 +300,38 @@ namespace NPUDemoIntegrated.Models.OBJModule
         {
             ReadOnlySpan<byte> bufferSpan = CollectionsMarshal.AsSpan(received_buffer);
 
-            int header_index = bufferSpan.IndexOf(header);
+            int headerIndex = bufferSpan.IndexOf(header);
+            int dataLength = 0;
 
-            if (header_index != -1)
+            if (headerIndex != -1)
             {
-                bufferSpan = bufferSpan.Slice(header_index + 4);
-                int footer_index = bufferSpan.IndexOf(footer);
-                if (footer_index != -1)
+                bufferSpan = bufferSpan.Slice(headerIndex + 4);
+                int footerIndex = bufferSpan.IndexOf(footer);
+                if (footerIndex != -1)
                 {
-                    data_length = footer_index;
+                    dataLength = footerIndex;
 
-                    if (data_length > 0 && data_length % 10 == 1)
+                    if (dataLength >= 10 && dataLength % 10 == 0)
                     {
-                        pure_data = received_buffer.GetRange(header_index + 4, data_length);
-                        received_buffer.RemoveRange(0, header_index + footer_index + 8);
+                        pure_data = received_buffer.GetRange(headerIndex + 4, dataLength);
+                        received_buffer.RemoveRange(0, headerIndex + footerIndex + 8);
                     }
                     else
                     {
                         GlobalLogManager.Instance.ConsoleLog("ERROR!! Data Length Not Available:: Clear Buffer");
-                        received_buffer.RemoveRange(0, header_index + footer_index + 8);
+                        received_buffer.RemoveRange(0, headerIndex + footerIndex + 8);
                     }
                 }
                 else
                 {
-                    if (footer_try_cnt >= 5)
+                    if (footerTryCnt >= 5)
                     {
                         GlobalLogManager.Instance.ConsoleLog($"ERROR!! Wrong Footer:: Clear Buffer");
                         received_buffer.Clear();
-                        footer_try_cnt = 0;
+                        footerTryCnt = 0;
                     }
-                    footer_try_cnt++;
-                    GlobalLogManager.Instance.ConsoleLog($"WARN.. No Footer Found in Buffer Find Count:: {footer_try_cnt}");
+                    footerTryCnt++;
+                    GlobalLogManager.Instance.ConsoleLog($"WARN.. No Footer Found in Buffer Find Count:: {footerTryCnt}");
                     Thread.Sleep(1);
                 }
             }
@@ -478,35 +343,12 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
         public void SendImageFragment()
         {
-            if (connectionState == ConnectionState.SendingImage)
-            { //while (connectionState == ConnectionState.SendingImage) {
+            if (connectionState == EConnectionState.SendingImage)
+            {
                 if (_config.is_send_all == true) _config.chunk_size = image_to_send.Length;
                 int chunk_size = _config.chunk_size;
-                /*
-                // Protocol Coomnad, Header, Footer Added & Image Packet Header Removed
-                try
-                {
-                    sp_comm.Write(new byte[9] { 0x10, 0x01, 0x10, 0x01, 0x01, 0x0D, 0x0A, 0x0D, 0x0A }, 0, 9);
-                }
-                catch (Exception ex)
-                {
-                    GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error sending start signal: {ex.Message}");
-                    GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error sending start signal: {ex.Message}");
-                }
 
-                Task.Delay(100);
-                
-                try
-                {
-                    sp_comm.Write(new byte[5] { 0x10, 0x01, 0x10, 0x01, 0x02 }, 0, 5);
-                }
-                catch (Exception ex)
-                {
-                    GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error sending start signal: {ex.Message}");
-                    GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error sending start signal: {ex.Message}");
-                }
-                */
-                while (connectionState == ConnectionState.SendingImage)
+                while (connectionState == EConnectionState.SendingImage)
                 {
                     int bytes_sent = fragment_index * chunk_size;
                     int remain_bytes = image_to_send.Length - bytes_sent;
@@ -532,7 +374,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                         Buffer.BlockCopy(image_to_send, bytes_sent, chunk, 0, bytes_to_send);
                         //Buffer.BlockCopy(new byte[4] { 0x0D, 0x0A, 0x0D, 0x0A }, 0, chunk, bytes_to_send, 4);
 
-                        connectionState = ConnectionState.WaitingForInference;
+                        connectionState = EConnectionState.WaitingForInference;
                         StatusChanged?.Invoke("WaitingForInference");
 
                         GlobalLogManager.Instance.ConsoleLog($"All image fragments have been sent :: Size={bytes_to_send} bytes");
@@ -548,7 +390,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
                     try
                     {
-                        sp_comm.Write(chunk, 0, chunk.Length);
+                        spComm.Write(chunk, 0, chunk.Length);
                         // GlobalLogManager.Instance.ConsoleLog($"OK.. Sent Fragment {fragment_index + 1}:: Size={bytes_to_send} bytes");
                         // GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Sent Fragment {fragment_index + 1}:: Size={bytes_to_send} bytes");
                         fragment_index++;
@@ -559,29 +401,13 @@ namespace NPUDemoIntegrated.Models.OBJModule
                         GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error sending fragment: {ex.Message}");
                         Disconnect();
                     }
-                    /*
-                    try
-                    {
-                        GlobalLogManager.Instance.ConsoleLog($"Waiting For Inference :: {connectionState}");
-                        GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Waiting For Inference :: {connectionState}");
-
-                        Task.Delay(100);
-
-                        sp_comm.Write(new byte[9] { 0x10, 0x01, 0x10, 0x01, 0x03, 0x0D, 0x0A, 0x0D, 0x0A }, 0, 9);
-                    }
-                    catch (Exception ex)
-                    {
-                        GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error sending inference signal: {ex.Message}");
-                        GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error sending inference signal: {ex.Message}");
-                    }
-                    */
                 }
             }
         }
 
         public void SendImageFragment_SPI()
         {
-            if (connectionState != ConnectionState.SendingImage) return;
+            if (connectionState != EConnectionState.SendingImage) return;
 
             if (_config.is_send_all == true)
                 _config.chunk_size = image_to_send.Length;
@@ -604,7 +430,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
             {
                 // [CS Low] Comm Start (ADBUS3 = 0)
                 // 0x80(GPIO Setting) + 0x00(CS Low, 나머지 Low) + 0xFB(Direction)
-                SetCS_Low();
+                SetCS_Low(_ftdi);
 
                 for (int i = 0; i < chunk_send_count; i++)
                 {
@@ -623,9 +449,9 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
                 // [CS High] Comm Start (ADBUS3 = 1)
                 // 0x80(GPIO Setting) + 0x08(CS High) + 0xFB(Direction)
-                SetCS_High();
+                SetCS_High(_ftdi);
 
-                connectionState = ConnectionState.WaitingForInference;
+                connectionState = EConnectionState.WaitingForInference;
                 StatusChanged?.Invoke("WaitingForInference");
 
                 GlobalLogManager.Instance.ConsoleLog($"SPI Image Transfer Complete. Total: {image_to_send.Length} bytes");
@@ -633,71 +459,27 @@ namespace NPUDemoIntegrated.Models.OBJModule
             catch (Exception ex)
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR in SendImageFragment_SPI: {ex.Message}");
-                SetCS_High();
+                SetCS_High(_ftdi);
                 Disconnect();
             }
         }
 
-        // Chip Select (CS) Control : Low
-        private void SetCS_Low()
+        public override void SendModuleChangeNotice(ModuleType moduleType)
         {
-            uint bytesWritten = 0;
-            // 0x80: ADBUS Setup Command
-            // 0x00: Value (All pins Low, ADBUS3(=CS) to Low)
-            // 0xFB: Direction (SK, DO, CS = Output(1), DI = Input(0)) -> 1111 1011
-            byte[] cmd = { 0x80, 0x00, 0xFB };
-            _ftdi.Write(cmd, cmd.Length, ref bytesWritten);
-        }
-
-        // Chip Select (CS) Control : High
-        private void SetCS_High()
-        {
-            uint bytesWritten = 0;
-            // 0x08: Value (ADBUS3(CS) High, 나머지 Low) -> 0000 1000
-            byte[] cmd = { 0x80, 0x08, 0xFB };
-            _ftdi.Write(cmd, cmd.Length, ref bytesWritten);
+            if (!spComm.IsOpen)
+            {
+                base.SerialConnect(spComm);
+            }
+            GlobalLogManager.Instance.ConsoleLog($"SendModuleChangeNotice Called in OBJService, TargetModule is ::{moduleType}");
+            spComm.Write(new byte[] { (byte)moduleType }, 0, 1);
         }
 
         public void Disconnect()
         {
-            if (_ftdi != null && _ftdi.IsOpen)
-            {
-                try
-                {
-                    _ftdi.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
-                    _ftdi.SetBitMode(0x00, 0x00);
+            base.SPIDisconnect(_ftdi);
+            base.SerialDisconnect(spComm);
 
-                    _ftdi.Close();
-
-                    GlobalLogManager.Instance.ConsoleLog("FTDI (SPI) Device Closed & Reset.");
-                }
-                catch (Exception ex)
-                {
-                    GlobalLogManager.Instance.ConsoleLog($"ERROR closing FTDI: {ex.Message}");
-                    GlobalLogManager.Instance.AddLogToFile("ERROR", ($"ERROR closing FTDI: {ex.Message}"));
-                }
-            }
-            _isConnected = false;
-
-            if ((sp_comm != null && sp_comm.IsOpen))
-            { // && (sp_debug != null && sp_debug.IsOpen)
-                try
-                {
-                    sp_comm.DataReceived -= OnSerialReceived; // test with tx change to rx later
-                    //sp_debug.DataReceived -= OnSerialReceived_Debug;
-
-                    System.Threading.Thread.Sleep(20);
-
-                    sp_comm.Close();
-                    //sp_debug.Close();
-                }
-                catch (Exception ex)
-                {
-                    GlobalLogManager.Instance.ConsoleLog($"ERROR!! Error during Disconnect: {ex.Message}");
-                    GlobalLogManager.Instance.AddLogToFile("ERROR", $"Error during Disconnect: {ex.Message}");
-                }
-            }
-            connectionState = ConnectionState.Disconnected;
+            connectionState = EConnectionState.Disconnected;
             StatusChanged?.Invoke("Disconnected");
 
             GlobalLogManager.Instance.ConsoleLog("Serial Disconnected");

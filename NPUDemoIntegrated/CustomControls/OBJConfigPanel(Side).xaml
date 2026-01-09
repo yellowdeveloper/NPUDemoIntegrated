@@ -39,12 +39,12 @@
         </ObjectDataProvider>
         <ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="ImageModeEnumValues">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="obj:ImageMode"/>
+                <x:Type TypeName="obj:EImageMode"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
         <ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="ImageSizeEnumValues">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="obj:ImageSize"/>
+                <x:Type TypeName="obj:EImageSize"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </UserControl.Resources>

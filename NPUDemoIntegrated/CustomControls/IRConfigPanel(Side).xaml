@@ -71,7 +71,6 @@
                 <RowDefinition Height="60"/>
                 <RowDefinition Height="60"/>
                 <RowDefinition Height="60"/>
-                <RowDefinition Height="60"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0,0,0,1">
@@ -98,19 +97,32 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Com Port" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
+                    <TextBlock Grid.Column="0" Text="Com Port&#xA;(IR)" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
                        FontFamily="\Fonts\GmarketSansTTFLight.ttf #G마켓 산스 TTF Light"/>
-                    <TextBox Grid.Column="1" Margin="10" Text="{Binding irConfig.portName, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
-                             LostFocus ="PNTextBox_LostFocus" GotFocus="TextBox_GotFocus" VerticalContentAlignment="Center" TextAlignment="Center" FontSize="20" CharacterCasing="Upper">
+                    <TextBox Grid.Column="1" Margin="10" Text="{Binding irConfig.IRPortName, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
+                             LostFocus ="IRPNTextBox_LostFocus" GotFocus="TextBox_GotFocus" VerticalContentAlignment="Center" TextAlignment="Center" FontSize="20" CharacterCasing="Upper">
                     </TextBox>
-                    <CheckBox Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Content="SPI"
-                          FontSize="20" IsChecked="{Binding irConfig.is_spi_enable}" VerticalContentAlignment="Center"/>
                 </Grid>
             </Border>
             <Border Grid.Row="2" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Com Port&#xA;(NPU)" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
+                               FontFamily="\Fonts\GmarketSansTTFLight.ttf #G마켓 산스 TTF Light"/>
+                    <TextBox Grid.Column="1" Margin="10" Text="{Binding irConfig.portName, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
+                 LostFocus ="NPUPNTextBox_LostFocus" GotFocus="TextBox_GotFocus" VerticalContentAlignment="Center" TextAlignment="Center" FontSize="20" CharacterCasing="Upper">
+                    </TextBox>
+                    <CheckBox Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Content="SPI"
+              FontSize="20" IsChecked="{Binding irConfig.is_spi_enable}" VerticalContentAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Grid.Row="3" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -122,7 +134,7 @@
                          LostFocus ="BaudTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" TextAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </Border>
-            <Border Grid.Row="3" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
+            <Border Grid.Row="4" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -134,19 +146,34 @@
                          LostFocus ="DatTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" TextAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </Border>
-            <Border Grid.Row="4" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
+            <Border Grid.Row="5" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Size Of&#xA;Data" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
+                    <TextBlock Grid.Column="0" Text="Packet Size" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
                                FontFamily="\Fonts\GmarketSansTTFLight.ttf #G마켓 산스 TTF Light"/>
-                    <TextBox Grid.Column="1" Margin="10"  Text="{Binding irConfig.numOfData, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
-                             LostFocus ="NumOfDatTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                    <TextBox Grid.Column="1" Margin="10"  Text="{Binding irConfig.chunk_size}" Foreground="Gray"
+                             GotFocus="TextBox_GotFocus" LostFocus="PacketTextBox_LostFocus"  FontSize="22"
+                             TextAlignment="Center" VerticalContentAlignment="Center">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding irConfig.is_send_all}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <CheckBox Grid.Column="2"  IsChecked="{Binding irConfig.is_send_all}" Content="Send All" HorizontalAlignment="Center"
+                              VerticalAlignment="Center" Margin="0,0,5,0" FontSize="18" VerticalContentAlignment="Center"
+                              FontFamily="\Fonts\NanumSquareNeo-bRg.ttf #나눔스퀘어 네오 Regular"/>
                 </Grid>
             </Border>
-            <Border Grid.Row="5" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
+            <Border Grid.Row="6" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -159,7 +186,7 @@
                           HorizontalContentAlignment="Center"/>
                 </Grid>
             </Border>
-            <Border Grid.Row="6" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
+            <Border Grid.Row="7" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -183,21 +210,17 @@
             <Border Grid.Row="8" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    
-                </Grid>
-            </Border>
-            <Border Grid.Row="9" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Prob Mask" Foreground="Black" FontSize="20" Margin="5,25,6,0" VerticalAlignment="Top"
+                               FontFamily="\Fonts\GmarketSansTTFLight.ttf #G마켓 산스 TTF Light" Grid.ColumnSpan="2"/>
+                    <TextBox Grid.Column="1" Margin="10,10,10,10" Text="{Binding SerialConfig.prob_thres}" Foreground="Gray"
+                             GotFocus="TextBox_GotFocus" LostFocus="ProbTextBox_LostFocus" FontSize="22" VerticalContentAlignment="Center"
+                             HorizontalContentAlignment="Center"/>
                 </Grid>
             </Border>
-            <Border Grid.Row="10" BorderBrush="DarkGray" BorderThickness="0,0,0,0">
+            <Border Grid.Row="9" BorderBrush="DarkGray" BorderThickness="0,0,0,0">
                 <Button Content="Test Send" FontSize="22" Margin="20,10,20,0" Command="{Binding SendCommand}" Background="{x:Null}" BorderBrush="Black"/>
             </Border>
         </Grid>

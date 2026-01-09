@@ -19,13 +19,20 @@ namespace NPUDemoIntegrated.ViewModels
         public IRViewModel IRVM { get; }
 
         private object _currentContext;
+        private ModuleType _currentModule;
         private string _currentViewName;
         public object currentContext
         {
             get { return _currentContext; }
             set { _currentContext = value; OnPropertyChanged(); }
         }
-        
+
+        public ModuleType currentModule
+        {
+            get => _currentModule;
+            set { _currentModule = value; OnPropertyChanged(); }
+        }
+
         public string currentViewName
         {
             get => _currentViewName;
@@ -50,19 +57,34 @@ namespace NPUDemoIntegrated.ViewModels
 
             // --- Init ViewModel Status ---
             currentContext = OBJVM;
-            currentViewName = "OBJ";
+            currentModule = ModuleType.OBJ;
+            currentViewName = currentModule.ToString();
 
             // --- Set Command ---
             SwitchViewCommand = new RelayCommand(param =>
             {
-                if (param.ToString() == "OBJ")
+                string targetView = param.ToString();
+
+                Enum.TryParse(targetView, out ModuleType targetModule);
+
+                if (currentModule == targetModule) return;
+
+                if (currentContext is BaseViewModel oldVM)
+                {
+                    oldVM.DeactivateModule(targetModule);
+                    GlobalLogManager.Instance.ConsoleLog($"Deactivate {currentViewName}");
+                }
+
+                if (targetView == "OBJ")
                 {
                     currentContext = OBJVM;
+                    currentModule = ModuleType.OBJ;
                     currentViewName = "OBJ";
                 }
-                else if (param.ToString() == "IR")
+                else if (targetView == "IR")
                 {
                     currentContext = IRVM;
+                    currentModule = ModuleType.IR;
                     currentViewName = "IR";
                 }
             });

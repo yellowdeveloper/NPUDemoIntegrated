@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using NPUDemoIntegrated.GlobalManagers;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,6 +20,7 @@ namespace NPUDemoIntegrated
     {
         public MainWindow()
         {
+            InitializeManager.InitializeProgram();
             InitializeComponent();
         }
         private void HeaderView_PreviewMouseDown(object sender, MouseButtonEventArgs e)

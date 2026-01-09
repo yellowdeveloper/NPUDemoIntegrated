@@ -9,21 +9,19 @@ using System.Threading.Tasks;
 
 namespace NPUDemoIntegrated.Models.IRModule
 {
-    class IRSerialData: Notifier
+    class IRModuleData: Notifier
     {
         private List<byte> _receivedBuffer = new List<byte>();
         private readonly object _lock = new object();
+
+        private byte[] _receivedBufferArray;
+        private float _sensorTemp = 0;
+        private float[] _pixelTempArray;
 
         private const byte START_HI = 0x16;
         private const byte START_LO = 0x98;
         private const byte END_HI = 0x1A;
         private const byte END_LO = 0x9C;
-
-        private int data_length = 0;
-
-        private byte[] _receivedBufferArray;
-        private float _sensorTemp = 0;
-        private float[] _pixelTempArray;
 
         private readonly Stopwatch _stopwatch = new Stopwatch();
 
@@ -117,7 +115,7 @@ namespace NPUDemoIntegrated.Models.IRModule
 
         public int FindProtocolInBuffer(int numOfData)
         {
-            _stopwatch.Restart();
+            int data_length = 0;
 
             byte[] start = { START_HI, START_LO };
             byte[] end = { END_HI, END_LO };
@@ -152,41 +150,28 @@ namespace NPUDemoIntegrated.Models.IRModule
             }
             Console.WriteLine("Protocol Successfully Found!");
 
-            _stopwatch.Stop();
-            var elapsed = _stopwatch.Elapsed.TotalMilliseconds;
-            Console.Write($"FindProtocolInBuffer elapsed:: {elapsed}\n");
-
             return startIndex;
         }
 
         public void PostProcessData(int numOfData, int resolution)
         {
-            _stopwatch.Restart();
+            float[] tempArray;
 
             lock (_lock)
             {
                 short tmpSenseVal = (short)((_receivedBufferArray[0] << 8) | _receivedBufferArray[1]);
                 sensorTemp = tmpSenseVal / 10.0f;
 
-                float[] tempArray = new float[numOfData - 1];
+                tempArray = new float[numOfData - 1];
 
                 for (int i = 2; i < _receivedBufferArray.Length; i += 2)
                 {
                     short tmpArrVal = (short)((_receivedBufferArray[i] << 8) | _receivedBufferArray[i + 1]);
                     tempArray[(i - 2) / 2] = tmpArrVal / 10.0f;
                 }
-
-                _stopwatch.Stop();
-                var elapsed = _stopwatch.Elapsed.TotalMilliseconds;
-                Console.Write($"PostProcessData Before Resize elapsed:: {elapsed}\n");
-
-                pixelTempArray = tempArray;
-
-                //for (int i = 0; i < _pixelTempArray.Length; i++)
-                //{
-                //    Console.WriteLine($"Pixel[{i}] Temperature: {_pixelTempArray[i]} °C");
-                //}
             }
+
+            pixelTempArray = tempArray;
         }
     }
 }

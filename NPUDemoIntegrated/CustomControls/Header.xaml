@@ -83,8 +83,8 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Doksan NPU Real-Time Vision AI Demonstration" Foreground="White" FontSize="42" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                <TextBlock Grid.Row="1" Text="Real-time camera input and on-device object detection inference" Foreground="White" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="0" Text="{Binding title}" Foreground="White" FontSize="42" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                <TextBlock Grid.Row="1" Text="{Binding subTitle}" Foreground="White" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,5"/>
 
                 <Button Background="Transparent" Command="{Binding ToggleMenuCommand}">
                     <Button.Template>
