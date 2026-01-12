@@ -176,27 +176,15 @@ namespace NPUDemoIntegrated.ViewModels
                     else { mat_tmp = colorMat.Clone(); }
                 }
 
-                Mat resized;
-                resized = Resize(mat_tmp);
-
-                lock (_send_lock)
-                {
-                    //Debug.Write("\nSendLock Called");
-                    colorMatShow?.Dispose();
-                    colorMatShow = mat_tmp.Clone();
-                }
-                mat_tmp.Dispose();
-
                 try
                 {
                     Debug.Write("\nSerialCommunication Called");
-                    _stopwatch.Restart();
-                    await _serialService.SerialCommunication(resized);
+                    await _serialService.SerialCommunication(mat_tmp);
                 }
                 finally
                 {
                     _isSending = false;
-                    resized.Dispose();
+                    mat_tmp.Dispose();
                 }
             }
             else if (_serialService.connectionState == EConnectionState.WaitingForInference && _isSendAuto)
@@ -227,15 +215,22 @@ namespace NPUDemoIntegrated.ViewModels
             }
 
             text_boxs.Clear();
+
+            Mat resized = new Mat();
             lock (_bbox_lock)
             {
+                resized = Resize(frame_to_draw, 512);
+
                 foreach (var box in _bbox)
                 {
-                    Cv2.Rectangle(frame_to_draw, box, Scalar.Red, 2);
+                    Scalar rectColor = new Scalar(0, 0, 255, 255);  //red
+                    Cv2.Rectangle(resized, box, rectColor, 2);
 
-                    text_boxs.Add(DrawTextWithBox(frame_to_draw, cls[cnt], prob[cnt], box));
+                    text_boxs.Add(DrawTextWithBox(resized, cls[cnt], prob[cnt], box));
                     cnt++;
                 }
+
+                frame_to_draw.Dispose();
                 // Cv2.ImWrite(save_path, frame_to_draw);
             }
 
@@ -247,15 +242,16 @@ namespace NPUDemoIntegrated.ViewModels
 
             _stopwatch.Stop();
             var elapsed = _stopwatch.Elapsed.TotalSeconds;
+            _stopwatch.Restart();
 
             Application.Current.Dispatcher.Invoke(() => {
-                BitmapSource bitmap_tmp = frame_to_draw.ToBitmapSource();
+                BitmapSource bitmap_tmp = resized.ToBitmapSource();
                 bitmap_tmp.Freeze();
 
                 bitmapShow = bitmap_tmp;
                 fps = 1 / elapsed;
 
-                frame_to_draw.Dispose();
+                resized.Dispose();
             });
 
             GlobalLogManager.Instance.ConsoleLog($"Frame Rate:: {fps}");
@@ -279,12 +275,15 @@ namespace NPUDemoIntegrated.ViewModels
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
                 coord.Y = box.Y + text_size.Height + 1;
             }
-            if (box.X + text_size.Width > 640)
+            if (box.X + text_size.Width > irConfig.resolution)
             {
                 GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-                coord.X = box.X - ((box.X + text_size.Width) - 640);
+                coord.X = box.X - ((box.X + text_size.Width) - irConfig.resolution);
             }
+
+            Scalar rectColor = new Scalar(0, 0, 255, 255);  //red
+            Scalar textColor = new Scalar(0, 255, 255, 255);//yellow
 
             OpenCvSharp.Rect background_rect = new OpenCvSharp.Rect(
                 coord.X,
@@ -297,8 +296,8 @@ namespace NPUDemoIntegrated.ViewModels
             coord.X = background_rect.X;
             coord.Y = background_rect.Y + text_size.Height;
 
-            Cv2.Rectangle(frame, background_rect, Scalar.Red, -1);
-            Cv2.PutText(frame, text, coord, font, font_scale, Scalar.Yellow, thickness);
+            Cv2.Rectangle(frame, background_rect, rectColor, -1);
+            Cv2.PutText(frame, text, coord, font, font_scale, textColor, thickness);
 
             GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");
@@ -411,19 +410,18 @@ namespace NPUDemoIntegrated.ViewModels
             return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
         }
 
-        public Mat Resize(Mat src)
+        public Mat Resize(Mat src, int size)
         {
             GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
 
-            int size = irConfig.resolution;
             OpenCvSharp.Size newSize = new OpenCvSharp.Size(size, size);
 
             Mat resizedImage = new Mat();
             Cv2.Resize(src, resizedImage, newSize, 0, 0, InterpolationFlags.Linear);
 
             Mat chanelChangedImage = new Mat();
-            Cv2.CvtColor(resizedImage, chanelChangedImage, ColorConversionCodes.BGRA2BGR);
+            Cv2.CvtColor(resizedImage, chanelChangedImage, ColorConversionCodes.BGRA2RGB);
 
             resizedImage.Dispose();
 
@@ -519,7 +517,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 if (_isSendAuto)
                 {
-                    _timer.Change(0, 10);
+                    _timer.Change(0, 500);
                     GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
                     GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
                 }

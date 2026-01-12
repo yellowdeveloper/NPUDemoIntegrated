@@ -1,9 +1,11 @@
 ﻿using FTD2XX_NET;
 using NPUDemoIntegrated.GlobalManagers;
+using NPUDemoIntegrated.ViewModels;
 using OpenCvSharp;
 using System.Data;
 using System.IO.Ports;
 using System.Runtime.InteropServices;
+
 
 namespace NPUDemoIntegrated.Models.IRModule
 {
@@ -147,7 +149,6 @@ namespace NPUDemoIntegrated.Models.IRModule
                     image_to_send = new byte[img_size];
                 }
 
-
                 if (frame.Empty())
                 {
                     for (int i = 0; i < image_to_send.Length; i++)
@@ -225,6 +226,7 @@ namespace NPUDemoIntegrated.Models.IRModule
             if (modelType != 1)
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 1");
+                SendModuleChangeNotice(ModuleType.IR);
                 return;
             }
 
@@ -259,26 +261,7 @@ namespace NPUDemoIntegrated.Models.IRModule
 
                 GlobalLogManager.Instance.ConsoleLog($"Before Resize :: x={x}, y={y}, w={w}, h={h}");
 
-                int x_new = x;
-                int y_new = y;
-                int w_new = w;
-                int h_new = h;
-
-                double ratio_x;
-                double ratio_y;
-
                 double resolution = _config.resolution;
-
-                ratio_x = 640.0f / resolution;
-                ratio_y = 480.0f / resolution;
-
-                x_new = (int)(x * ratio_x);
-                y_new = (int)(y * ratio_y);
-                w_new = (int)(w * ratio_x);
-                h_new = (int)(h * ratio_y);
-
-                GlobalLogManager.Instance.ConsoleLog($"After Resize :: x={x_new}, y={y_new}, w={w_new}, h={h_new}");
-
 
                 GlobalLogManager.Instance.ConsoleLog($"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
@@ -287,7 +270,7 @@ namespace NPUDemoIntegrated.Models.IRModule
                 {
                     received_cls.Add((IRConfig.EClassArray)cls);
                     received_probs.Add(prob);
-                    received_rects.Add(new Rect(x_new, y_new, w_new, h_new));
+                    received_rects.Add(new Rect(x, y, w, h));
                 }
             }
             PointsReceived?.Invoke(received_rects, received_cls, received_probs);
