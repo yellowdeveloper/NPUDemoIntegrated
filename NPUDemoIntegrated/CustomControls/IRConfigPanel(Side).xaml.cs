@@ -26,21 +26,6 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.irConfig.IRPortName;
-                text_box.Foreground = Brushes.Gray;
-            }
-            else
-            {
-                GlobalConfigManager.Instance.irConfig.IRPortName = text_box.Text;
-                text_box.Foreground = Brushes.Gray;
-            }
-        }
-
-        private void NPUPNTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            var text_box = sender as TextBox;
-            if (string.IsNullOrWhiteSpace(text_box.Text))
-            {
                 text_box.Text = GlobalConfigManager.Instance.irConfig.portName;
                 text_box.Foreground = Brushes.Gray;
             }
@@ -50,17 +35,32 @@ namespace NPUDemoIntegrated.CustomControls
                 text_box.Foreground = Brushes.Gray;
             }
         }
+
+        private void NPUPNTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var text_box = sender as TextBox;
+            if (string.IsNullOrWhiteSpace(text_box.Text))
+            {
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.portName;
+                text_box.Foreground = Brushes.Gray;
+            }
+            else
+            {
+                GlobalConfigManager.Instance.serialConfig.portName = text_box.Text;
+                text_box.Foreground = Brushes.Gray;
+            }
+        }
         private void BaudTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.irConfig.baudRate.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.baudRate.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.irConfig.baudRate = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.baudRate = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -70,12 +70,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.irConfig.dataBits.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.dataBits.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.irConfig.dataBits = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.dataBits = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -99,12 +99,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.irConfig.chunk_size.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.chunkSize.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.irConfig.chunk_size = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.chunkSize = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -114,12 +114,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.irConfig.prob_thres.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.probThres.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.irConfig.prob_thres = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.probThres = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }

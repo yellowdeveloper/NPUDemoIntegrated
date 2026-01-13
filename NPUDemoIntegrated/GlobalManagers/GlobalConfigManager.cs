@@ -1,4 +1,5 @@
-﻿using NPUDemoIntegrated.Models.IRModule;
+﻿using NPUDemoIntegrated.Models;
+using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using System.IO;
 using System.Reflection;
@@ -16,6 +17,8 @@ namespace NPUDemoIntegrated.GlobalManagers
 
         public OBJConfig objConfig { get; set; } = new OBJConfig();
         public IRConfig irConfig { get; set; } = new IRConfig();
+
+        public SerialConfig serialConfig { get; set; } = new SerialConfig();
 
         private string _configFolderPath = @"Config\";
         private string _configFileName = "init_config.ini";
@@ -91,6 +94,7 @@ namespace NPUDemoIntegrated.GlobalManagers
                 GlobalLogManager.Instance.ConsoleLog("No Config File Found!! Creating Config File ... ");
                 return;
             }
+            MapIniToControl(configFilePath, "SerialInfo", serialConfig);
             MapIniToControl(configFilePath, "OBJConfigInfo", objConfig);
             MapIniToControl(configFilePath, "IRConfigInfo", irConfig);
         }
@@ -100,6 +104,7 @@ namespace NPUDemoIntegrated.GlobalManagers
             if (!Directory.Exists(_configFolderPath)) Directory.CreateDirectory(_configFolderPath);
             string configFilePath = Path.Combine(_configFolderPath, _configFileName);
 
+            MapControlToIni(configFilePath, "SerialInfo", serialConfig);
             MapControlToIni(configFilePath, "OBJConfigInfo", objConfig);
             MapControlToIni(configFilePath, "IRConfigInfo", irConfig);
         }

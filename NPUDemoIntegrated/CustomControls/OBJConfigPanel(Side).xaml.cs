@@ -26,12 +26,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.portName;
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.portName;
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.portName = text_box.Text;
+                GlobalConfigManager.Instance.serialConfig.portName = text_box.Text;
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -40,12 +40,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.baudRate.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.baudRate.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.baudRate = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.baudRate = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -55,12 +55,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.dataBits.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.dataBits.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.dataBits = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.dataBits = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -70,12 +70,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.chunk_size.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.chunkSize.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.chunk_size = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.chunkSize = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }
@@ -85,12 +85,12 @@ namespace NPUDemoIntegrated.CustomControls
             var text_box = sender as TextBox;
             if (string.IsNullOrWhiteSpace(text_box.Text))
             {
-                text_box.Text = GlobalConfigManager.Instance.objConfig.prob_thres.ToString();
+                text_box.Text = GlobalConfigManager.Instance.serialConfig.probThres.ToString();
                 text_box.Foreground = Brushes.Gray;
             }
             else
             {
-                GlobalConfigManager.Instance.objConfig.prob_thres = Convert.ToInt32(text_box.Text);
+                GlobalConfigManager.Instance.serialConfig.probThres = Convert.ToInt32(text_box.Text);
                 text_box.Foreground = Brushes.Gray;
             }
         }

@@ -43,9 +43,10 @@ namespace NPUDemoIntegrated.ViewModels
         {
             SerialPort sp = new SerialPort();
             FTDI ftdi = new FTDI();
-            SerialConfig serialConfig = new SerialConfig();
+
 
             // Eject Config Object
+            var serialConfig = GlobalConfigManager.Instance.serialConfig;
             var objConfig = GlobalConfigManager.Instance.objConfig;
             var irConfig = GlobalConfigManager.Instance.irConfig;
 
