@@ -7,6 +7,7 @@ using OpenCvSharp.WpfExtensions;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.IO.Ports;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -21,6 +22,7 @@ namespace NPUDemoIntegrated.ViewModels
 
         private readonly IRSerialService _serialService;
         public IRConfig irConfig { get; }
+        public SerialConfig serialConfig { get; }
 
         private readonly Timer _timer;
         private DispatcherTimer _measureTimer;
@@ -53,10 +55,11 @@ namespace NPUDemoIntegrated.ViewModels
         private readonly object _bbox_lock = new object();
         private readonly object _send_lock = new object();
 
-        public IRViewModel(IRConfig config, IRSerialService service)
+        public IRViewModel(SerialConfig _serialConfig, IRConfig _irConfig, IRSerialService service)
         {
             _serialService = service;
-            irConfig = config;
+            irConfig = _irConfig;
+            serialConfig = _serialConfig;
 
             _serialService.PointsReceived += OnPointsReceived;
 

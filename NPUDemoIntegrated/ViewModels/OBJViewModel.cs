@@ -30,7 +30,7 @@ namespace NPUDemoIntegrated.ViewModels
         private Mat _frame_to_draw;
         private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
         private List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
-        private string _connection_status = "Disconnected";
+
         private bool _is_sent_auto = false;
         private bool _is_sending = false;
         private int _try_count = 0;
@@ -52,10 +52,11 @@ namespace NPUDemoIntegrated.ViewModels
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device object detection inference";
 
-        public OBJViewModel(OBJConfig config, OBJSerialService service)
+        public OBJViewModel(SerialConfig _serialConfig, OBJConfig _objConfig, OBJSerialService service)
         {
             _serialService = service;
-            objConfig = config;
+            objConfig = _objConfig;
+            serialConfig = _serialConfig;
             //_viewModelId = DateTime.Now.ToString("\nInstance Creadted Time == HH:mm:ss.fff\n");
             //Debug.Write($"{_viewModelId}");
 
@@ -93,13 +94,13 @@ namespace NPUDemoIntegrated.ViewModels
 
         private async Task SendFramePeriodically()
         {
-            if (!_is_sending && _try_count >= 20 && _connection_status == "WaitingForInference")
+            if (!_is_sending && _try_count >= 20 && _serialService.connectionState == EConnectionState.WaitingForInference)
             {
-                connection_status = "Connected";
-                GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {connection_status}");
-                GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {connection_status}");
+                _serialService.connectionState = EConnectionState.Connected;
+                GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
+                GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
             }
-            if (!_is_sending && _connection_status == "Connected")
+            if (!_is_sending && _serialService.connectionState == EConnectionState.Connected)
             {
                 _is_sending = true;
 
@@ -160,7 +161,7 @@ namespace NPUDemoIntegrated.ViewModels
                     resized.Dispose();
                 }
             }
-            else if (_connection_status == "WaitingForInference" && _is_sent_auto)
+            else if (_serialService.connectionState == EConnectionState.WaitingForInference && _is_sent_auto)
             {
                 //GlobalLogManager.Instance.ConsoleLog($"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}"  );
                 //GlobalLogManager.Instance.AddLogToFile("ERROR", $"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}");
@@ -365,11 +366,6 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        private void OnStatusChanged(string status)
-        {
-            connection_status = status;
-        }
-
         public BitmapSource bitmap_show
         {
             get => _bitmap;
@@ -382,17 +378,11 @@ namespace NPUDemoIntegrated.ViewModels
             set { _bitmap_sent = value; OnPropertyChanged(); }
         }
 
-        public string connection_status
-        {
-            get => _connection_status;
-            set { _connection_status = value; OnPropertyChanged(); OnPropertyChanged(nameof(cn_dn)); }
-        }
-
         public string cn_dn
         {
             get
             {
-                if (_connection_status == "Disconnected")
+                if (_serialService.connectionState == EConnectionState.Disconnected)
                 {
                     return "White";    //Disonnected
                 }
