@@ -176,6 +176,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! connectionState Error State:: {connectionState}");
                 SendModuleChangeNotice(ModuleType.OBJ);
+                Thread.Sleep(10);
                 ProcessReceivedBuffer();
             }
 
@@ -194,6 +195,8 @@ namespace NPUDemoIntegrated.Models.OBJModule
             if (modelType != 0)
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 0");
+                SendModuleChangeNotice(ModuleType.OBJ);
+                Thread.Sleep(10);
                 return;
             }
 

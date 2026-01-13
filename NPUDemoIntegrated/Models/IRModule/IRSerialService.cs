@@ -227,6 +227,7 @@ namespace NPUDemoIntegrated.Models.IRModule
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 1");
                 SendModuleChangeNotice(ModuleType.IR);
+                Thread.Sleep(10);
                 ProcessReceivedBuffer();
             }
 
