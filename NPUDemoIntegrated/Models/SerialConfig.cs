@@ -1,25 +1,28 @@
-﻿using System;
+﻿using NPUDemoIntegrated.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NPUDemoIntegrated.Utils;
+using System.Windows.Forms;
 
 namespace NPUDemoIntegrated.Models
 {
     class SerialConfig: Notifier
     {
+        // Serial Class for all NPU Connection
         private string _portName = "COM5";
         private int _baudRate = 921600;
         private int _dataBits = 8;
         private Parity _parity = Parity.None;
         private StopBits _stopBits = StopBits.One;
 
-        private bool _is_spi_enable = false;
-        private bool _is_send_all = true;
-        private int _chunk_size = 1024;
-        private int _prob_thres = 50;
+        private bool _isSpiEnable = false;
+        private bool _isSendAll = true;
+        private int _chunkSize = 1024;
+        private int _probThres = 50;
+        private EImageMode _imgMode = EImageMode.RESIZE;
 
         public string portName
         {
@@ -47,26 +50,31 @@ namespace NPUDemoIntegrated.Models
             get { return _stopBits; }
             set { _stopBits = value; OnPropertyChanged(); }
         }
-        public bool is_spi_enable
+        public bool isSpiEnable
         {
-            get { return _is_spi_enable; }
-            set { _is_spi_enable = value; OnPropertyChanged(); }
+            get { return _isSpiEnable; }
+            set { _isSpiEnable = value; OnPropertyChanged(); }
         }
-        public int chunk_size
+        public int chunkSize
         {
-            get { return _chunk_size; }
-            set { _chunk_size = value; OnPropertyChanged(); }
+            get { return _chunkSize; }
+            set { _chunkSize = value; OnPropertyChanged(); }
         }
-        public bool is_send_all
+        public bool isSendAll
         {
-            get { return _is_send_all; }
-            set { _is_send_all = value; OnPropertyChanged(); }
+            get { return _isSendAll; }
+            set { _isSendAll = value; OnPropertyChanged(); }
         }
 
-        public int prob_thres
+        public int probThres
         {
-            get { return _prob_thres; }
-            set { _prob_thres = value; OnPropertyChanged(); }
+            get { return _probThres; }
+            set { _probThres = value; OnPropertyChanged(); }
+        }
+        public EImageMode imgMode
+        {
+            get { return _imgMode; }
+            set { _imgMode = value; OnPropertyChanged(); }
         }
     }
 }

@@ -22,6 +22,7 @@ namespace NPUDemoIntegrated.ViewModels
         private readonly Stopwatch _stopwatch = new Stopwatch();
 
         public OBJConfig objConfig { get; }
+        public SerialConfig serialConfig { get; }
 
         private BitmapSource _bitmap;
         private BitmapSource _bitmap_sent;
@@ -64,7 +65,6 @@ namespace NPUDemoIntegrated.ViewModels
             _web_cam_control.WebCamInitialize();
 
             _serialService.PointsReceived += OnPointsReceived;
-            _serialService.StatusChanged += OnStatusChanged;
 
             ConnectCommand = new RelayCommand(param => {
                 if (_serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
@@ -131,7 +131,7 @@ namespace NPUDemoIntegrated.ViewModels
                 }
 
                 Mat resized;
-                if (objConfig.img_mode == EImageMode.RESIZE)
+                if (serialConfig.imgMode == EImageMode.RESIZE)
                 {
                     resized = Resize(mat_tmp);
                 }
@@ -325,7 +325,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
-            int size = objConfig.img_size == EImageSize.S320 ? 320 : 384;
+            int size = objConfig.imgSize == EImageSize.S320 ? 320 : 384;
             OpenCvSharp.Size newSize = new OpenCvSharp.Size(size, size);
 
             Mat resizedImage = new Mat();
@@ -338,7 +338,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             GlobalLogManager.Instance.ConsoleLog("Padding bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Padding bbox Image ...");
-            int size = objConfig.img_size == EImageSize.S320 ? 320 : 384;
+            int size = objConfig.imgSize == EImageSize.S320 ? 320 : 384;
             Scalar color = new Scalar(0, 0, 0); // Black padding
 
             double w = src.Width;
@@ -429,7 +429,7 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        public override void DeactivateModule(ModuleType targetModule)
+        public override void DeactivateModule(EModuleType targetModule)
         {
             _serialService.SendModuleChangeNotice(targetModule);
             _serialService?.Disconnect();
@@ -440,7 +440,7 @@ namespace NPUDemoIntegrated.ViewModels
             _timer.Dispose();
             _web_cam_control.FrameUpdate -= OnFrameUpdate;
             _serialService.PointsReceived -= OnPointsReceived;
-            _serialService.StatusChanged -= OnStatusChanged;
+            
             _web_cam_control.Dispose();
             if (_frame_to_draw != null) _frame_to_draw.Dispose();
             if (_frame_to_send != null) _frame_to_send.Dispose();

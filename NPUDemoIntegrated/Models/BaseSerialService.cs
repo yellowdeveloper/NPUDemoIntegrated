@@ -21,28 +21,36 @@ namespace NPUDemoIntegrated.Models
         ProceesingBuffer
     }
 
-    enum ModuleType
+    enum EModuleType
     {
         OBJ,
         IR,
         RAIDAR
     }
 
-    abstract class BaseSerialService<TConfig> where TConfig : SerialConfig
+    enum EImageMode { RESIZE, PAD }
+
+    abstract class BaseSerialService<TSerialConfig> where TSerialConfig : SerialConfig
     {
         private bool _isConnected = false;
-        protected TConfig _config;
+
+        protected TSerialConfig _serialConfig;
+        protected SerialPort _spComm;
+        protected FTDI _ftdi;
+        protected CancellationTokenSource _cts;
 
         public readonly byte[] header = { 0x10, 0x01, 0x10, 0x01 };
         public readonly byte[] footer = { 0x0D, 0x0A, 0x0D, 0x0A };
 
-        public BaseSerialService(TConfig config)
+        public BaseSerialService(TSerialConfig serialConfig, SerialPort sp, FTDI ftdi)
         {
-            _config = config;
+            _serialConfig = serialConfig;
+            _spComm = sp;
+            _ftdi = ftdi;
         }
 
         protected abstract void OnSerialReceived(object sender, SerialDataReceivedEventArgs e);
-        public abstract void SendModuleChangeNotice(ModuleType module);
+        public abstract void SendModuleChangeNotice(EModuleType module);
 
         protected virtual int SerialConnect(SerialPort sp)
         {
@@ -52,11 +60,11 @@ namespace NPUDemoIntegrated.Models
                 {
                     GlobalLogManager.Instance.ConsoleLog("Connecting to Serial Port(Common)...");
 
-                    sp.PortName = _config.portName;
-                    sp.BaudRate = _config.baudRate;
-                    sp.Parity = _config.parity;
-                    sp.DataBits = _config.dataBits;
-                    sp.StopBits = _config.stopBits;
+                    sp.PortName = _serialConfig.portName;
+                    sp.BaudRate = _serialConfig.baudRate;
+                    sp.Parity = _serialConfig.parity;
+                    sp.DataBits = _serialConfig.dataBits;
+                    sp.StopBits = _serialConfig.stopBits;
 
                     sp.DataReceived += OnSerialReceived; // test with tx remove later --> No, We now use UART rx with SPI
 

@@ -1,14 +1,10 @@
-﻿using NPUDemoIntegrated.GlobalManagers;
+﻿using FTD2XX_NET;
+using NPUDemoIntegrated.GlobalManagers;
 using NPUDemoIntegrated.Models;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms.Design;
+using System.IO.Ports;
 using System.Windows.Input;
 
 namespace NPUDemoIntegrated.ViewModels
@@ -18,8 +14,10 @@ namespace NPUDemoIntegrated.ViewModels
         public OBJViewModel OBJVM { get; }
         public IRViewModel IRVM { get; }
 
+
+
         private object _currentContext;
-        private ModuleType _currentModule;
+        private EModuleType _currentModule;
         private string _currentViewName;
         public object currentContext
         {
@@ -27,7 +25,7 @@ namespace NPUDemoIntegrated.ViewModels
             set { _currentContext = value; OnPropertyChanged(); }
         }
 
-        public ModuleType currentModule
+        public EModuleType currentModule
         {
             get => _currentModule;
             set { _currentModule = value; OnPropertyChanged(); }
@@ -43,13 +41,17 @@ namespace NPUDemoIntegrated.ViewModels
 
         public MainViewModel()
         {
+            SerialPort sp = new SerialPort();
+            FTDI ftdi = new FTDI();
+            SerialConfig serialConfig = new SerialConfig();
+
             // Eject Config Object
             var objConfig = GlobalConfigManager.Instance.objConfig;
             var irConfig = GlobalConfigManager.Instance.irConfig;
 
             // Inject Config to Service
-            var objService = new OBJSerialService(objConfig);
-            var irService = new IRSerialService(irConfig);
+            var objService = new OBJSerialService(serialConfig, objConfig, sp, ftdi);
+            var irService = new IRSerialService(serialConfig, irConfig, sp, ftdi);
 
             // Inject Service & Config to ViewModel
             OBJVM = new OBJViewModel(objConfig, objService);
@@ -57,7 +59,7 @@ namespace NPUDemoIntegrated.ViewModels
 
             // --- Init ViewModel Status ---
             currentContext = OBJVM;
-            currentModule = ModuleType.OBJ;
+            currentModule = EModuleType.OBJ;
             currentViewName = currentModule.ToString();
 
             // --- Set Command ---
@@ -65,7 +67,7 @@ namespace NPUDemoIntegrated.ViewModels
             {
                 string targetView = param.ToString();
 
-                Enum.TryParse(targetView, out ModuleType targetModule);
+                Enum.TryParse(targetView, out EModuleType targetModule);
 
                 if (currentModule == targetModule) return;
 
@@ -78,13 +80,13 @@ namespace NPUDemoIntegrated.ViewModels
                 if (targetView == "OBJ")
                 {
                     currentContext = OBJVM;
-                    currentModule = ModuleType.OBJ;
+                    currentModule = EModuleType.OBJ;
                     currentViewName = "OBJ";
                 }
                 else if (targetView == "IR")
                 {
                     currentContext = IRVM;
-                    currentModule = ModuleType.IR;
+                    currentModule = EModuleType.IR;
                     currentViewName = "IR";
                 }
             });

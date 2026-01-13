@@ -569,7 +569,7 @@ namespace NPUDemoIntegrated.ViewModels
             set { _bitmapShow = value; OnPropertyChanged(); }
         }
 
-        public override void DeactivateModule(ModuleType targetModule)
+        public override void DeactivateModule(EModuleType targetModule)
         {
             _serialService.SendModuleChangeNotice(targetModule);
             _serialService?.Disconnect();

@@ -6,17 +6,14 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace NPUDemoIntegrated.Models.OBJModule
 {
-    public enum EImageMode { RESIZE, PAD }
-    public enum EImageSize { S384, S320 }
-
-    class OBJConfig: SerialConfig
+    enum EImageSize { S384, S320 }
+    class OBJConfig: Notifier
     {
-
-        private EImageMode _img_mode = EImageMode.RESIZE;
-        private EImageSize _img_size = EImageSize.S320;
+        private EImageSize _imgSize = EImageSize.S320;
 
         public enum EClassArray
         {
@@ -31,15 +28,10 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
         public bool[] vis_state = new bool[80];
 
-        public EImageMode img_mode
+        public EImageSize imgSize
         {
-            get { return _img_mode; }
-            set { _img_mode = value; OnPropertyChanged(); }
-        }
-        public EImageSize img_size
-        {
-            get { return _img_size; }
-            set { _img_size = value; OnPropertyChanged(); }
+            get { return _imgSize; }
+            set { _imgSize = value; OnPropertyChanged(); }
         }
     }
 }
