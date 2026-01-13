@@ -176,15 +176,27 @@ namespace NPUDemoIntegrated.ViewModels
                     else { mat_tmp = colorMat.Clone(); }
                 }
 
+                Mat resized;
+                resized = Resize(mat_tmp, irConfig.resolution, "send");
+                //colorMatShow = resized; // test
+
+                lock (_send_lock)
+                {
+                    //Debug.Write("\nSendLock Called");
+                    colorMatShow?.Dispose();
+                    colorMatShow = mat_tmp.Clone();
+                }
+                mat_tmp.Dispose();
+
                 try
                 {
                     Debug.Write("\nSerialCommunication Called");
-                    await _serialService.SerialCommunication(mat_tmp);
+                    await _serialService.SerialCommunication(resized);
                 }
                 finally
                 {
                     _isSending = false;
-                    mat_tmp.Dispose();
+                    resized.Dispose();
                 }
             }
             else if (_serialService.connectionState == EConnectionState.WaitingForInference && _isSendAuto)
@@ -219,7 +231,7 @@ namespace NPUDemoIntegrated.ViewModels
             Mat resized = new Mat();
             lock (_bbox_lock)
             {
-                resized = Resize(frame_to_draw, 512);
+                resized = Resize(frame_to_draw, 512, "");
 
                 foreach (var box in _bbox)
                 {
@@ -275,11 +287,11 @@ namespace NPUDemoIntegrated.ViewModels
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
                 coord.Y = box.Y + text_size.Height + 1;
             }
-            if (box.X + text_size.Width > irConfig.resolution)
+            if (box.X + text_size.Width > 512)
             {
                 GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-                coord.X = box.X - ((box.X + text_size.Width) - irConfig.resolution);
+                coord.X = box.X - ((box.X + text_size.Width) - 512);
             }
 
             Scalar rectColor = new Scalar(0, 0, 255, 255);  //red
@@ -410,7 +422,7 @@ namespace NPUDemoIntegrated.ViewModels
             return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
         }
 
-        public Mat Resize(Mat src, int size)
+        public Mat Resize(Mat src, int size, string opt)
         {
             GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
@@ -421,11 +433,14 @@ namespace NPUDemoIntegrated.ViewModels
             Cv2.Resize(src, resizedImage, newSize, 0, 0, InterpolationFlags.Linear);
 
             Mat chanelChangedImage = new Mat();
-            Cv2.CvtColor(resizedImage, chanelChangedImage, ColorConversionCodes.BGRA2RGB);
+            if (opt == "send")
+            {
+                Cv2.CvtColor(resizedImage, chanelChangedImage, ColorConversionCodes.BGRA2RGB);
+                resizedImage.Dispose();
+                return chanelChangedImage;
+            }
 
-            resizedImage.Dispose();
-
-            return chanelChangedImage;
+            return resizedImage;
         }
 
         private void ResizeBitmap(float[] array, int resolution)

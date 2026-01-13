@@ -227,7 +227,7 @@ namespace NPUDemoIntegrated.Models.IRModule
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 1");
                 SendModuleChangeNotice(ModuleType.IR);
-                return;
+                ProcessReceivedBuffer();
             }
 
             byte[] voltageByte = new byte[4];
@@ -261,7 +261,21 @@ namespace NPUDemoIntegrated.Models.IRModule
 
                 GlobalLogManager.Instance.ConsoleLog($"Before Resize :: x={x}, y={y}, w={w}, h={h}");
 
-                double resolution = _config.resolution;
+                int x_new = x;
+                int y_new = y;
+                int w_new = w;
+                int h_new = h;
+
+                double ratio_x;
+                double ratio_y;
+
+                ratio_x = 512.0f / _config.resolution;
+                ratio_y = 512.0f / _config.resolution;
+
+                x_new = (int)(x * ratio_x);
+                y_new = (int)(y * ratio_y);
+                w_new = (int)(w * ratio_x);
+                h_new = (int)(h * ratio_y);
 
                 GlobalLogManager.Instance.ConsoleLog($"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
@@ -270,7 +284,7 @@ namespace NPUDemoIntegrated.Models.IRModule
                 {
                     received_cls.Add((IRConfig.EClassArray)cls);
                     received_probs.Add(prob);
-                    received_rects.Add(new Rect(x, y, w, h));
+                    received_rects.Add(new Rect(x_new, y_new, w_new, h_new));
                 }
             }
             PointsReceived?.Invoke(received_rects, received_cls, received_probs);

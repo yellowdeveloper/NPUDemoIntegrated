@@ -226,6 +226,8 @@ namespace NPUDemoIntegrated.Models
 
                     ftdi.Close();
 
+                    System.Threading.Thread.Sleep(100);
+
                     GlobalLogManager.Instance.ConsoleLog("FTDI (SPI) Device Closed & Reset.");
                 }
                 catch (Exception ex)
@@ -261,7 +263,8 @@ namespace NPUDemoIntegrated.Models
 
         protected float ConvertByteArray(byte[] val)
         {
-            float result = BitConverter.ToSingle(val, 0);
+            float result = BitConverter.ToUInt32(val);
+            result = result / 1000.0f;
             return result;
         }
     }

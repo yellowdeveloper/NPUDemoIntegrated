@@ -175,7 +175,8 @@ namespace NPUDemoIntegrated.Models.OBJModule
             if (connectionState != EConnectionState.WaitingForInference)
             {
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! connectionState Error State:: {connectionState}");
-                return;
+                SendModuleChangeNotice(ModuleType.OBJ);
+                ProcessReceivedBuffer();
             }
 
             connectionState = EConnectionState.ProceesingBuffer;

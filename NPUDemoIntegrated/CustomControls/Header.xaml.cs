@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using NPUDemoIntegrated.GlobalManagers;
+using System.Windows;
 using System.Windows.Controls;
 
 
@@ -20,6 +21,13 @@ namespace NPUDemoIntegrated.CustomControls
 
             if (parentWindow != null)
             {
+                if (parentWindow?.DataContext is ViewModels.MainViewModel vm)
+                {
+                    GlobalLogManager.Instance.ConsoleLog("Closing ... Dispose all Instances");
+                    vm.OBJVM.Dispose();
+                    vm.IRVM.Dispose();
+                }
+
                 parentWindow.Close();
                 // Application.Current.Shutdown();
             }
