@@ -10,7 +10,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
     class OBJSerialService: ImageSerialService<SerialConfig>
     {
         private readonly OBJConfig _objConfig;
-        public OBJSerialService(SerialConfig serialConfig, OBJConfig objConfig, SerialPort sp, FTDI ftdi) : base(serialConfig, sp, ftdi)
+        public OBJSerialService(SerialConfig serialConfig, OBJConfig objConfig, SerialPort sp, FTDI ftdi, SharedStatus stat) : base(serialConfig, sp, ftdi, stat)
         {
             _objConfig = objConfig;
         }
@@ -254,8 +254,5 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
             connectionState = EConnectionState.Connected;
         }
-
-        
-        
     }
 }

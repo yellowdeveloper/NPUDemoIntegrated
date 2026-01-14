@@ -15,7 +15,18 @@ namespace NPUDemoIntegrated.Models
 {
     internal class ImageSerialService<TConfig> : BaseSerialService<TConfig> where TConfig : SerialConfig
     {
-        public ImageSerialService(TConfig config, SerialPort sp, FTDI ftdi) : base(config, sp, ftdi) { }
+        protected SharedStatus _sharedStatus;
+
+        public EConnectionState connectionState
+        {
+            get => _sharedStatus.connectionState;
+            set => _sharedStatus.connectionState = value;
+        }
+
+        public ImageSerialService(TConfig config, SerialPort sp, FTDI ftdi, SharedStatus stat) : base(config, sp, ftdi)
+        {
+            _sharedStatus = stat;
+        }
 
         protected List<byte> receivedBuffer = new List<byte>();
         protected List<byte> pureData = new List<byte>();
@@ -24,13 +35,6 @@ namespace NPUDemoIntegrated.Models
         protected byte[] imageToSend;
         protected int footerTryCnt = 0;
 
-        protected EConnectionState _connectionState = EConnectionState.Disconnected;
-
-        public EConnectionState connectionState
-        {
-            get { return _connectionState; }
-            set { _connectionState = value; }
-        }
         // Connect Method For NPU Connection
         public virtual int Connect()
         {
@@ -202,7 +206,7 @@ namespace NPUDemoIntegrated.Models
                 for (int i = 0; i < chunkSendCount; i++)
                 {
                     int offset = i * chunkSize;
-
+                    // GlobalLogManager.Instance.ConsoleLog($"SPI Writing iter count :: {i}");
                     // Copy and send with SPI
                     Buffer.BlockCopy(imageToSend, offset, txBuffer, 3, chunkSize);
                     FTDI.FT_STATUS status = _ftdi.Write(txBuffer, txBuffer.Length, ref bytesWritten);
@@ -240,10 +244,44 @@ namespace NPUDemoIntegrated.Models
         {
             if (!_spComm.IsOpen)
             {
-                base.SerialConnect(_spComm);
+                GlobalLogManager.Instance.ConsoleLog($"Not Connected to NPU. Module Change Message will not be sent.");
+                return;
             }
             GlobalLogManager.Instance.ConsoleLog($"SendModuleChangeNotice Called in OBJService, TargetModule is ::{moduleType}");
             _spComm.Write(new byte[] { (byte)moduleType }, 0, 1);
+        }
+
+        public void SerialReceiveEventDispose()
+        {
+            _spComm.DataReceived -= OnSerialReceived;
+            ResetServiceState();
+        }
+        public void SerialReceiveEventSubscribe()
+        {
+            _spComm.DataReceived += OnSerialReceived;
+        }
+
+        public void ResetServiceState()
+        {
+            lock (receivedBuffer)
+            {
+                receivedBuffer.Clear();
+                pureData.Clear();
+            }
+            footerTryCnt = 0;
+            fragmentIndex = 0;
+
+            if (_spComm != null && _spComm.IsOpen)
+            {
+                _spComm.DiscardInBuffer();
+                _spComm.DiscardOutBuffer();
+            }
+
+            if (_ftdi != null && _ftdi.IsOpen)
+            {
+                _ftdi.Purge(FTDI.FT_PURGE.FT_PURGE_RX | FTDI.FT_PURGE.FT_PURGE_TX);
+                SetCS_High(_ftdi);
+            }
         }
 
         public virtual void Disconnect()

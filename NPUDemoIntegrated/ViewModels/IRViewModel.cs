@@ -31,9 +31,11 @@ namespace NPUDemoIntegrated.ViewModels
         public override ICommand ConnectCommand { get; }
         public override ICommand DisconnectCommand { get; }
 
-        public ICommand StartMeasureCommand { get; }
+        public ICommand ModuleConnectCommand { get; }
+        public ICommand ModuleDisconnectCommand { get; }
         public ICommand AutoMeasureToggleCommand { get; }
         public ICommand SendCommand { get; }
+        private ICommand _moduleCommand;
 
         private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
         private List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
@@ -124,10 +126,21 @@ namespace NPUDemoIntegrated.ViewModels
 
             ButtonCommand = ConnectCommand;
 
-            StartMeasureCommand = new RelayCommand(param =>
+            ModuleConnectCommand = new RelayCommand(param =>
             {
-                _serialService.StartMeasure();
+                if (_serialService.ModuleConnect() == 1) ModuleCommand = ModuleDisconnectCommand;
+                if (is_menu_open) is_menu_open = !is_menu_open;
             });
+
+            ModuleDisconnectCommand = new RelayCommand(param =>
+            {
+                Task.Run(() => _serialService.ModuleDisconnect());
+                ModuleCommand = ModuleConnectCommand;
+                if (is_menu_open) is_menu_open = !is_menu_open;
+                //Debug.Write("\nDisconnect button clicked");
+            });
+
+            ModuleCommand = ModuleConnectCommand;
 
             AutoMeasureToggleCommand = new RelayCommand(param =>
             {
@@ -152,12 +165,14 @@ namespace NPUDemoIntegrated.ViewModels
 
         private async Task SendFramePeriodically()
         {
+            GlobalLogManager.Instance.ConsoleLog($"In SendFramePeriodically Key Status :: sending? {_isSending} state? {_serialService.connectionState} auto?{isSendAuto}");
             if (!_isSending && _tryCount >= 20 && _serialService.connectionState == EConnectionState.WaitingForInference)
             {
                 _serialService.connectionState = EConnectionState.Connected;
                 GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
             }
+
             if (!_isSending && _serialService.connectionState == EConnectionState.Connected)
             {
                 _isSending = true;
@@ -571,11 +586,29 @@ namespace NPUDemoIntegrated.ViewModels
             get => _bitmapShow;
             set { _bitmapShow = value; OnPropertyChanged(); }
         }
+        public ICommand ModuleCommand
+        {
+            get => _moduleCommand;
+            set { _moduleCommand = value; OnPropertyChanged(); }
+        }
 
         public override void DeactivateModule(EModuleType targetModule)
         {
+
+            isSendAuto = false;
+            _measureTimer.Stop();
+
+            Thread.Sleep(10);
+
             _serialService.SendModuleChangeNotice(targetModule);
-            _serialService?.Disconnect();
+            _serialService.ModuleDisconnect();
+            _serialService.SerialReceiveEventDispose();
+
+            Thread.Sleep(20);
+        }
+        public override void ActivateModule()
+        {
+            _serialService.SerialReceiveEventSubscribe();
         }
 
         public override void Dispose()

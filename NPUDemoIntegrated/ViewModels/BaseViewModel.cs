@@ -51,6 +51,7 @@ namespace NPUDemoIntegrated.ViewModels
         }
 
         public abstract void DeactivateModule(EModuleType targetModule);
+        public abstract void ActivateModule();
         public abstract void Dispose();
     }
 }

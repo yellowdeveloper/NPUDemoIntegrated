@@ -12,8 +12,8 @@ namespace NPUDemoIntegrated.Models
     class SerialConfig: Notifier
     {
         // Serial Class for all NPU Connection
-        private string _portName = "COM5";
-        private int _baudRate = 921600;
+        private string _portName = "COM6";
+        private int _baudRate = 115200;
         private int _dataBits = 8;
         private Parity _parity = Parity.None;
         private StopBits _stopBits = StopBits.One;

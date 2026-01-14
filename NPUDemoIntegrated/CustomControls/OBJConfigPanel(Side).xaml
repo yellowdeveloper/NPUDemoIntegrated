@@ -6,7 +6,6 @@
              xmlns:local="clr-namespace:NPUDemoIntegrated.CustomControls"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:serialPorts="clr-namespace:System.IO.Ports;assembly=System"
-             xmlns:obj="clr-namespace:NPUDemoIntegrated.Models.OBJModule"
              xmlns:models="clr-namespace:NPUDemoIntegrated.Models"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="400">
@@ -45,7 +44,7 @@
         </ObjectDataProvider>
         <ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="ImageSizeEnumValues">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="obj:EImageSize"/>
+                <x:Type TypeName="models:EImageSize"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </UserControl.Resources>

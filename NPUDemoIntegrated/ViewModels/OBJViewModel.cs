@@ -421,8 +421,19 @@ namespace NPUDemoIntegrated.ViewModels
 
         public override void DeactivateModule(EModuleType targetModule)
         {
+            is_send_auto = false;
+
+            Thread.Sleep(10);
+
             _serialService.SendModuleChangeNotice(targetModule);
-            _serialService?.Disconnect();
+            _serialService.SerialReceiveEventDispose();
+
+            Thread.Sleep(20);
+        }
+
+        public override void ActivateModule()
+        {
+            _serialService.SerialReceiveEventSubscribe();
         }
 
         public override void Dispose()

@@ -34,8 +34,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Content="IR&#xA;Test" FontSize="30" Margin="20,5,20,5" Background="Transparent" Foreground="Black"
-                                    BorderBrush="Black" Command="{Binding StartMeasureCommand}" TextBlock.TextAlignment="Center"/>
+                            <Button Grid.Column="0" Content="Conn" FontSize="30" Margin="20,5,20,5" Background="Transparent" Foreground="Black"
+                                    BorderBrush="Black" Command="{Binding ModuleCommand}" TextBlock.TextAlignment="Center"/>
                             <ToggleButton Grid.Column="1" Content="▶" FontSize="40" Margin="20,5,20,5" Background="Transparent"
                                           Foreground="Black" BorderBrush="Black" IsChecked="{Binding IsMeasuring, Mode=TwoWay}"
                                           Command="{Binding AutoMeasureToggleCommand}"

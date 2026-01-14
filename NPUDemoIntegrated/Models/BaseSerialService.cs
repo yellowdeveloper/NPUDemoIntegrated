@@ -11,29 +11,8 @@ using System.Threading.Tasks;
 
 namespace NPUDemoIntegrated.Models
 {
-    enum EConnectionState
-    {
-        Disconnected,
-        Connecting,
-        Connected,
-        SendingImage,
-        WaitingForInference,
-        ProceesingBuffer
-    }
-
-    enum EModuleType
-    {
-        OBJ,
-        IR,
-        RAIDAR
-    }
-
-    enum EImageMode { RESIZE, PAD }
-
     abstract class BaseSerialService<TSerialConfig> where TSerialConfig : SerialConfig
     {
-        private bool _isConnected = false;
-
         protected TSerialConfig _serialConfig;
         protected SerialPort _spComm;
         protected FTDI _ftdi;
@@ -58,13 +37,13 @@ namespace NPUDemoIntegrated.Models
             {
                 try
                 {
-                    GlobalLogManager.Instance.ConsoleLog("Connecting to Serial Port(Common)...");
-
                     sp.PortName = _serialConfig.portName;
                     sp.BaudRate = _serialConfig.baudRate;
                     sp.Parity = _serialConfig.parity;
                     sp.DataBits = _serialConfig.dataBits;
                     sp.StopBits = _serialConfig.stopBits;
+
+                    GlobalLogManager.Instance.ConsoleLog($"Connecting to Serial Port(Common:{sp.PortName})...");
 
                     sp.DataReceived += OnSerialReceived; // test with tx remove later --> No, We now use UART rx with SPI
 
@@ -89,7 +68,7 @@ namespace NPUDemoIntegrated.Models
         }
         protected int SPIConnect(FTDI ftdi)
         {
-            if (_isConnected) return 1;
+            if (ftdi.IsOpen) return 1;
 
             uint devCount = 0;
             ftdi.GetNumberOfDevices(ref devCount);
@@ -162,7 +141,6 @@ namespace NPUDemoIntegrated.Models
                     return 0;
                 }
 
-                _isConnected = true;
                 GlobalLogManager.Instance.ConsoleLog($"FTDI SPI Connected to {deviceList[targetIndex].Description}");
                 return 1;
             }
@@ -176,8 +154,23 @@ namespace NPUDemoIntegrated.Models
 
         private bool MPSSEConfig(FTDI _ftdi)
         {
-            List<byte> cmd = new List<byte>();
             uint bytesWritten = 0;
+            uint bytesRead = 0;
+            byte[] buffer = new byte[1];
+
+            _ftdi.Write(new byte[] { 0xAA }, 1, ref bytesWritten);
+            Thread.Sleep(10);
+            _ftdi.GetRxBytesAvailable(ref bytesRead);
+            if (bytesRead > 0)
+            {
+                byte[] readData = new byte[bytesRead];
+                _ftdi.Read(readData, bytesRead, ref bytesRead);
+            }
+
+            _ftdi.Write(new byte[] { 0xAB }, 1, ref bytesWritten);
+
+            List<byte> cmd = new List<byte>();
+            //uint bytesWritten = 0;
 
             // FT232H setting
             cmd.Add(0x8A); // Disable Divide by 5 (60MHz Master Clock) 
@@ -244,7 +237,6 @@ namespace NPUDemoIntegrated.Models
                     GlobalLogManager.Instance.AddLogToFile("ERROR", ($"ERROR closing FTDI: {ex.Message}"));
                 }
             }
-            _isConnected = false;
         }
 
         protected virtual void SerialDisconnect(SerialPort sp)

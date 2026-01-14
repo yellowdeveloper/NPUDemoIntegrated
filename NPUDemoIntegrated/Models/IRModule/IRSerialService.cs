@@ -13,7 +13,7 @@ namespace NPUDemoIntegrated.Models.IRModule
     class IRSerialService: ImageSerialService<SerialConfig>
     {
         private readonly IRConfig _irConfig;
-        public IRSerialService(SerialConfig serialConfig, IRConfig irConfig, SerialPort sp, FTDI ftdi) : base(serialConfig, sp, ftdi)
+        public IRSerialService(SerialConfig serialConfig, IRConfig irConfig, SerialPort sp, FTDI ftdi, SharedStatus stat) : base(serialConfig, sp, ftdi, stat)
         {
             _irConfig = irConfig;
         }
@@ -26,31 +26,23 @@ namespace NPUDemoIntegrated.Models.IRModule
 
         private readonly object _rcLock = new object();
 
-        public override int Connect()
+        public int ModuleConnect()
         {
-            int ModuleConnection = SerialConnect(spModule);
-            int NPUConnection = base.Connect();
-
-            return NPUConnection & ModuleConnection;
-        }
-
-        protected override int SerialConnect(SerialPort sp)
-        {
-            if (!sp.IsOpen)
+            if (!spModule.IsOpen)
             {
                 try
                 {
-                    GlobalLogManager.Instance.ConsoleLog("Connecting to Serial Port(Module)...");
+                    spModule.PortName = _irConfig.portName;
+                    spModule.BaudRate = _irConfig.baudRate;
+                    spModule.Parity = _irConfig.parity;
+                    spModule.DataBits = _irConfig.dataBits;
+                    spModule.StopBits = _irConfig.stopBits;
 
-                    sp.PortName = _irConfig.portName;
-                    sp.BaudRate = _irConfig.baudRate;
-                    sp.Parity = _irConfig.parity;
-                    sp.DataBits = _irConfig.dataBits;
-                    sp.StopBits = _irConfig.stopBits;
+                    GlobalLogManager.Instance.ConsoleLog($"Connecting to Serial Port(Module:{spModule.PortName})...");
 
-                    sp.DataReceived += OnSerialReceivedModule; // test with tx remove later --> No, We now use UART rx with SPI
+                    spModule.DataReceived += OnSerialReceivedModule;
 
-                    sp.Open();
+                    spModule.Open();
 
                     return 1;
                 }
@@ -292,22 +284,17 @@ namespace NPUDemoIntegrated.Models.IRModule
             data.ClearBufferRange(0, endIndex + 2);
         }
 
-        public override void Disconnect()
+        public void ModuleDisconnect()
         {
-            SerialDisconnect(spModule);
-
-            base.Disconnect();
-        }
-
-        protected override void SerialDisconnect(SerialPort sp)
-        {
-            if ((sp != null && sp.IsOpen))
+            if ((spModule != null && spModule.IsOpen))
             {
                 try
                 {
-                    sp.DataReceived -= OnSerialReceivedModule;
+                    spModule.DataReceived -= OnSerialReceivedModule;
                     System.Threading.Thread.Sleep(20);
-                    sp.Close();
+                    spModule.Close();
+
+                    GlobalLogManager.Instance.ConsoleLog($"IR Module Disconnected");
                 }
                 catch (Exception ex)
                 {

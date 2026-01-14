@@ -14,8 +14,6 @@ namespace NPUDemoIntegrated.ViewModels
         public OBJViewModel OBJVM { get; }
         public IRViewModel IRVM { get; }
 
-
-
         private object _currentContext;
         private EModuleType _currentModule;
         private string _currentViewName;
@@ -44,15 +42,15 @@ namespace NPUDemoIntegrated.ViewModels
             SerialPort sp = new SerialPort();
             FTDI ftdi = new FTDI();
 
-
             // Eject Config Object
             var serialConfig = GlobalConfigManager.Instance.serialConfig;
             var objConfig = GlobalConfigManager.Instance.objConfig;
             var irConfig = GlobalConfigManager.Instance.irConfig;
+            var sharedStatus = new SharedStatus();
 
             // Inject Config to Service
-            var objService = new OBJSerialService(serialConfig, objConfig, sp, ftdi);
-            var irService = new IRSerialService(serialConfig, irConfig, sp, ftdi);
+            var objService = new OBJSerialService(serialConfig, objConfig, sp, ftdi, sharedStatus);
+            var irService = new IRSerialService(serialConfig, irConfig, sp, ftdi, sharedStatus);
 
             // Inject Service & Config to ViewModel
             OBJVM = new OBJViewModel(serialConfig, objConfig, objService);
@@ -83,12 +81,14 @@ namespace NPUDemoIntegrated.ViewModels
                     currentContext = OBJVM;
                     currentModule = EModuleType.OBJ;
                     currentViewName = "OBJ";
+                    OBJVM.ActivateModule();
                 }
                 else if (targetView == "IR")
                 {
                     currentContext = IRVM;
                     currentModule = EModuleType.IR;
                     currentViewName = "IR";
+                    IRVM.ActivateModule();
                 }
             });
         }

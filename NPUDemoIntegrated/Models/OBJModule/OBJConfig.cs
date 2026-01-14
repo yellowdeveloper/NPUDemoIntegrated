@@ -10,7 +10,6 @@ using System.Windows.Forms;
 
 namespace NPUDemoIntegrated.Models.OBJModule
 {
-    enum EImageSize { S384, S320 }
     class OBJConfig: Notifier
     {
         private EImageSize _imgSize = EImageSize.S320;
