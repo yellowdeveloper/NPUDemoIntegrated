@@ -14,10 +14,9 @@
                     <RowDefinition Height="100"/>
                 </Grid.RowDefinitions>
 
-                <ContentPresenter Grid.Row="0" 
-                              Content="{Binding currentContext}"/>
+                <ContentPresenter Grid.Row="0" Content="{Binding currentContext}"/>
 
-                <local:Footer Grid.Row="1"/>
+                <local:Footer Grid.Row="1" DataContext="{Binding currentContext}"/>
             </Grid>
             
         </Grid>

@@ -5,6 +5,7 @@ using NPUDemoIntegrated.Utils;
 using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -23,6 +24,7 @@ namespace NPUDemoIntegrated.ViewModels
 
         public OBJConfig objConfig { get; }
         public SerialConfig serialConfig { get; }
+        public EConnectionState connectionState { get; }
 
         private BitmapSource _bitmap;
         private BitmapSource _bitmap_sent;
@@ -43,12 +45,13 @@ namespace NPUDemoIntegrated.ViewModels
         private readonly object _bbox_lock = new object();
         private readonly object _send_lock = new object();
 
+        private float _volt = 0.0f;
+        private float _amp = 0.0f;
+
         public override ICommand ConnectCommand { get; }
         public override ICommand DisconnectCommand { get; }
         public ICommand SendCommand { get; }
 
-
-        public event PropertyChangedEventHandler PropertyChanged;
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device object detection inference";
 
@@ -57,6 +60,7 @@ namespace NPUDemoIntegrated.ViewModels
             _serialService = service;
             objConfig = _objConfig;
             serialConfig = _serialConfig;
+            connectionState = _serialService._sharedStatus.connectionState;
             //_viewModelId = DateTime.Now.ToString("\nInstance Creadted Time == HH:mm:ss.fff\n");
             //Debug.Write($"{_viewModelId}");
 
@@ -66,6 +70,14 @@ namespace NPUDemoIntegrated.ViewModels
             _web_cam_control.WebCamInitialize();
 
             _serialService.PointsReceived += OnPointsReceived;
+
+            _serialService._sharedStatus.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SharedStatus.connectionState))
+                {
+                    OnPropertyChanged(nameof(cn_dn));
+                }
+            };
 
             ConnectCommand = new RelayCommand(param => {
                 if (_serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
@@ -198,11 +210,12 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        private void OnPointsReceived(List<OpenCvSharp.Rect> b_box, List<OBJConfig.EClassArray> cls, List<int> prob)
+        private void OnPointsReceived(float volt, float amp, List<OpenCvSharp.Rect> b_box, List<OBJConfig.EClassArray> cls, List<int> prob)
         {
             string save_path = Path.Combine(GlobalConfigManager.Instance.GetImageFolderPath(), GlobalConfigManager.Instance.GetNowImageFileName());
             GlobalLogManager.Instance.ConsoleLog($"OK.. Points Received ... Drawing Bbox");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Points Received ... Drawing Bbox");
+
             int cnt = 0;
 
             lock (_bbox_lock)
@@ -239,12 +252,16 @@ namespace NPUDemoIntegrated.ViewModels
             _stopwatch.Stop();
             var elapsed = _stopwatch.Elapsed.TotalSeconds;
 
+            GlobalLogManager.Instance.ConsoleLog($"volt & amp: {amp}, {volt}");
             Application.Current.Dispatcher.Invoke(() => {
                 BitmapSource bitmap_tmp = frame_to_draw.ToBitmapSource();
                 bitmap_tmp.Freeze();
 
                 bitmap_sent = bitmap_tmp;
                 fps = 1 / elapsed;
+
+                this.volt = volt;
+                this.amp = amp;
 
                 frame_to_draw.Dispose();
             });
@@ -419,8 +436,27 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
+        public float volt
+        {
+            get => _volt;
+            set { _volt = value; OnPropertyChanged(); }
+        }
+
+        public float amp
+        {
+            get => _amp;
+            set { _amp = value; OnPropertyChanged(); }
+        }
+
         public override void DeactivateModule(EModuleType targetModule)
         {
+            while (_serialService.connectionState == EConnectionState.SendingImage)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState} wait until sending is finished");
+                Thread.Sleep(20);
+            }
+            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState}");
+
             is_send_auto = false;
 
             Thread.Sleep(10);

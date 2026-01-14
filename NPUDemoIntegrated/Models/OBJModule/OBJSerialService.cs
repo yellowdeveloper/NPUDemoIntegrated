@@ -18,7 +18,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
         // UART rx and tx separate
         private SerialPort spDebug = new SerialPort();
 
-        public event Action<List<Rect>, List<OBJConfig.EClassArray>, List<int>> PointsReceived;
+        public event Action<float, float, List<Rect>, List<OBJConfig.EClassArray>, List<int>> PointsReceived;
 
         private readonly object _rcLock = new object();
 
@@ -163,6 +163,10 @@ namespace NPUDemoIntegrated.Models.OBJModule
             voltageByte[3] = pureData[pureData.Count - 5];
             
             byte[] ampereByte = new byte[4];
+            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 4]}");
+            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 3]}");
+            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 2]}");
+            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 1]}");
             ampereByte[0] = pureData[pureData.Count - 4];
             ampereByte[1] = pureData[pureData.Count - 3];
             ampereByte[2] = pureData[pureData.Count - 2];
@@ -172,6 +176,8 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
             float voltage = ConvertByteArray(voltageByte);
             float ampere = ConvertByteArray(ampereByte);
+
+            GlobalLogManager.Instance.ConsoleLog($"{voltage} {ampere}");
 
             for (int i = 0; i < detected_cnt; i++)
             {
@@ -250,7 +256,8 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     received_rects.Add(new Rect(x_new, y_new, w_new, h_new));
                 }
             }
-            PointsReceived?.Invoke(received_rects, received_cls, received_probs);
+            GlobalLogManager.Instance.ConsoleLog($"amp, volt before invoke :: {ampere}, {voltage}");
+            PointsReceived?.Invoke(ampere, voltage, received_rects, received_cls, received_probs);
 
             connectionState = EConnectionState.Connected;
         }

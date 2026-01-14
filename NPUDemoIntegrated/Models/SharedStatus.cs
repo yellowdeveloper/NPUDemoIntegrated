@@ -9,7 +9,7 @@ namespace NPUDemoIntegrated.Models
 {
     class SharedStatus :Notifier
     {
-        private static EConnectionState _connectionState;
+        private EConnectionState _connectionState = EConnectionState.Disconnected;
 
         public EConnectionState connectionState
         {

@@ -41,12 +41,12 @@ namespace NPUDemoIntegrated.ViewModels
         {
             SerialPort sp = new SerialPort();
             FTDI ftdi = new FTDI();
+            SharedStatus sharedStatus = new SharedStatus();
 
             // Eject Config Object
             var serialConfig = GlobalConfigManager.Instance.serialConfig;
             var objConfig = GlobalConfigManager.Instance.objConfig;
             var irConfig = GlobalConfigManager.Instance.irConfig;
-            var sharedStatus = new SharedStatus();
 
             // Inject Config to Service
             var objService = new OBJSerialService(serialConfig, objConfig, sp, ftdi, sharedStatus);

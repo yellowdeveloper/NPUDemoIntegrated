@@ -80,7 +80,29 @@
                     <TextBlock Text="ETC." Foreground="Red" Margin="10,5,0,0" FontSize="20" FontFamily="\Fonts\GmarketSansTTFBold.ttf #G마켓 산스 TTF Bold"/>
                 </Viewbox>
                 <Viewbox Grid.Column="1">
-                    <TextBlock Text="Tech: SMIC 28nm&#xA;OperationVoltage:1.8V/0.9V&#xA;Power: 0.158W" Foreground="White" Margin="10,0,10,0"/>
+                    <!--TextBlock Text="Tech: SMIC 28nm&#xA;OperationVoltage:1.8V/0.9V&#xA;Power: 0.158W" Foreground="White" Margin="10,0,10,0"/-->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text = "Power" Foreground="White" Margin="10,0,10,0" FontSize="10"/>
+                            <TextBlock Grid.Row="1" Text = "{Binding volt, StringFormat={}{0:F3} W}" Foreground="White" Margin="10,0,10,0" FontSize="10"/>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text = "Ampere" Foreground="White" Margin="10,0,10,0" FontSize="10"/>
+                            <TextBlock Grid.Row="1" Text = "{Binding amp, StringFormat={}{0:F3} mA}" Foreground="White" Margin="10,0,10,0" FontSize="10"/>
+                        </Grid>
+                    </Grid>
                 </Viewbox>
             </Grid>
         </Border>

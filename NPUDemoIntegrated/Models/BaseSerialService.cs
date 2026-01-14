@@ -264,7 +264,9 @@ namespace NPUDemoIntegrated.Models
         protected float ConvertByteArray(byte[] val)
         {
             float result = BitConverter.ToUInt32(val);
+            GlobalLogManager.Instance.ConsoleLog($"COnvertByteArray Result befo cal {result}");
             result = result / 1000.0f;
+            GlobalLogManager.Instance.ConsoleLog($"COnvertByteArray Result after cal {result} -- ");
             return result;
         }
     }

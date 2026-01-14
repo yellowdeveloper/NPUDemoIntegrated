@@ -15,7 +15,7 @@ namespace NPUDemoIntegrated.Models
 {
     internal class ImageSerialService<TConfig> : BaseSerialService<TConfig> where TConfig : SerialConfig
     {
-        protected SharedStatus _sharedStatus;
+        public SharedStatus _sharedStatus { get; }
 
         public EConnectionState connectionState
         {

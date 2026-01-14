@@ -22,7 +22,7 @@ namespace NPUDemoIntegrated.Models.IRModule
 
         public IRModuleData Data { get; } = new IRModuleData();
         
-        public event Action<List<Rect>, List<IRConfig.EClassArray>, List<int>> PointsReceived;
+        public event Action<float, float, List<Rect>, List<IRConfig.EClassArray>, List<int>> PointsReceived;
 
         private readonly object _rcLock = new object();
 
@@ -245,7 +245,7 @@ namespace NPUDemoIntegrated.Models.IRModule
                     received_rects.Add(new Rect(x_new, y_new, w_new, h_new));
                 }
             }
-            PointsReceived?.Invoke(received_rects, received_cls, received_probs);
+            PointsReceived?.Invoke(ampere, voltage, received_rects, received_cls, received_probs);
 
             connectionState = EConnectionState.Connected;
         }

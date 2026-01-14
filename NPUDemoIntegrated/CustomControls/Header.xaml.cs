@@ -1,4 +1,6 @@
 ﻿using NPUDemoIntegrated.GlobalManagers;
+using NPUDemoIntegrated.Models;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -24,6 +26,9 @@ namespace NPUDemoIntegrated.CustomControls
                 if (parentWindow?.DataContext is ViewModels.MainViewModel vm)
                 {
                     GlobalLogManager.Instance.ConsoleLog("Closing ... Dispose all Instances");
+                    vm.OBJVM.DeactivateModule(EModuleType.OBJ);
+                    vm.OBJVM.DeactivateModule(EModuleType.OBJ);
+
                     vm.OBJVM.Dispose();
                     vm.IRVM.Dispose();
                 }

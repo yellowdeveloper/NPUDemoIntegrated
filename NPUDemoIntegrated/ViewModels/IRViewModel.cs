@@ -46,7 +46,10 @@ namespace NPUDemoIntegrated.ViewModels
         public Mat colorMat;
         public Mat colorMatShow;
         public BitmapSource _bitmapShow;
+
         private double _fps = 0.0;
+        private float _volt = 0.0f;
+        private float _amp = 0.0f;
 
         private bool _isSendAuto = false;
         private bool _isInterpolate = false;
@@ -75,6 +78,14 @@ namespace NPUDemoIntegrated.ViewModels
             colorBitmap = new WriteableBitmap(irConfig.resolution, irConfig.resolution,
                 96, 96, System.Windows.Media.PixelFormats.Bgr32, null);
             _processedBuffer = new float[irConfig.resolution * irConfig.resolution];
+
+            _serialService._sharedStatus.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SharedStatus.connectionState))
+                {
+                    OnPropertyChanged(nameof(cn_dn));
+                }
+            };
 
             irConfig.PropertyChanged += (s, e) =>
             {
@@ -165,7 +176,7 @@ namespace NPUDemoIntegrated.ViewModels
 
         private async Task SendFramePeriodically()
         {
-            GlobalLogManager.Instance.ConsoleLog($"In SendFramePeriodically Key Status :: sending? {_isSending} state? {_serialService.connectionState} auto?{isSendAuto}");
+            GlobalLogManager.Instance.ConsoleLog($"In SendFramePeriodically Key Status :: sending? {_isSending}, state? {_serialService.connectionState}, auto?{isSendAuto}");
             if (!_isSending && _tryCount >= 20 && _serialService.connectionState == EConnectionState.WaitingForInference)
             {
                 _serialService.connectionState = EConnectionState.Connected;
@@ -194,8 +205,8 @@ namespace NPUDemoIntegrated.ViewModels
                     else { mat_tmp = colorMat.Clone(); }
                 }
 
-                Mat resized;
-                resized = Resize(mat_tmp, irConfig.resolution, "send");
+                Mat converted = new Mat();
+                Cv2.CvtColor(mat_tmp, converted, ColorConversionCodes.BGRA2RGB);
                 //colorMatShow = resized; // test
 
                 lock (_send_lock)
@@ -209,12 +220,12 @@ namespace NPUDemoIntegrated.ViewModels
                 try
                 {
                     Debug.Write("\nSerialCommunication Called");
-                    await _serialService.SerialCommunication(resized);
+                    await _serialService.SerialCommunication(converted);
                 }
                 finally
                 {
                     _isSending = false;
-                    resized.Dispose();
+                    converted.Dispose();
                 }
             }
             else if (_serialService.connectionState == EConnectionState.WaitingForInference && _isSendAuto)
@@ -225,7 +236,7 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        private void OnPointsReceived(List<OpenCvSharp.Rect> b_box, List<IRConfig.EClassArray> cls, List<int> prob)
+        private void OnPointsReceived(float ampere, float watt, List<OpenCvSharp.Rect> b_box, List<IRConfig.EClassArray> cls, List<int> prob)
         {
             string save_path = Path.Combine(GlobalConfigManager.Instance.GetImageFolderPath(), GlobalConfigManager.Instance.GetNowImageFileName());
             GlobalLogManager.Instance.ConsoleLog($"OK.. Points Received ... Drawing Bbox");
@@ -249,7 +260,7 @@ namespace NPUDemoIntegrated.ViewModels
             Mat resized = new Mat();
             lock (_bbox_lock)
             {
-                resized = Resize(frame_to_draw, 512, "");
+                resized = Resize(frame_to_draw, 512);
 
                 foreach (var box in _bbox)
                 {
@@ -440,7 +451,7 @@ namespace NPUDemoIntegrated.ViewModels
             return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
         }
 
-        public Mat Resize(Mat src, int size, string opt)
+        public Mat Resize(Mat src, int size)
         {
             GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
@@ -449,14 +460,6 @@ namespace NPUDemoIntegrated.ViewModels
 
             Mat resizedImage = new Mat();
             Cv2.Resize(src, resizedImage, newSize, 0, 0, InterpolationFlags.Linear);
-
-            Mat chanelChangedImage = new Mat();
-            if (opt == "send")
-            {
-                Cv2.CvtColor(resizedImage, chanelChangedImage, ColorConversionCodes.BGRA2RGB);
-                resizedImage.Dispose();
-                return chanelChangedImage;
-            }
 
             return resizedImage;
         }
@@ -581,6 +584,18 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
+        public float volt
+        {
+            get => _volt;
+            set { _volt = value; OnPropertyChanged(); }
+        }
+
+        public float amp
+        {
+            get => _amp;
+            set { _amp = value; OnPropertyChanged(); }
+        }
+
         public BitmapSource bitmapShow
         {
             get => _bitmapShow;
@@ -594,6 +609,12 @@ namespace NPUDemoIntegrated.ViewModels
 
         public override void DeactivateModule(EModuleType targetModule)
         {
+            while (_serialService.connectionState == EConnectionState.SendingImage)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState} wait until sending is finished");
+                Thread.Sleep(20);
+            }
+            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState}");
 
             isSendAuto = false;
             _measureTimer.Stop();
