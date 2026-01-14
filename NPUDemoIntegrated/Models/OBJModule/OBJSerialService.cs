@@ -153,6 +153,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 0");
                 SendModuleChangeNotice(EModuleType.OBJ);
                 Thread.Sleep(10);
+                connectionState = EConnectionState.Connected;
                 return;
             }
 

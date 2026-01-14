@@ -258,7 +258,12 @@ namespace NPUDemoIntegrated.Models
         }
         public void SerialReceiveEventSubscribe()
         {
-            _spComm.DataReceived += OnSerialReceived;
+            if (_spComm.IsOpen) {
+                _spComm.DataReceived += OnSerialReceived;
+            }
+            else {
+                GlobalLogManager.Instance.ConsoleLog("Not connected to NPU! No Subscription occurs!");
+            }
         }
 
         public void ResetServiceState()
@@ -286,6 +291,13 @@ namespace NPUDemoIntegrated.Models
 
         public virtual void Disconnect()
         {
+            while (connectionState == EConnectionState.SendingImage)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"WARN.. now connection state ::{connectionState} wait until sending is finished");
+                Thread.Sleep(20);
+            }
+            GlobalLogManager.Instance.ConsoleLog($"OK.. now connection state ::{connectionState}");
+
             base.SPIDisconnect(_ftdi);
             base.SerialDisconnect(_spComm);
 

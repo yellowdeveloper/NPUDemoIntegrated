@@ -148,7 +148,6 @@ namespace NPUDemoIntegrated.ViewModels
                 Task.Run(() => _serialService.ModuleDisconnect());
                 ModuleCommand = ModuleConnectCommand;
                 if (is_menu_open) is_menu_open = !is_menu_open;
-                //Debug.Write("\nDisconnect button clicked");
             });
 
             ModuleCommand = ModuleConnectCommand;
@@ -200,6 +199,7 @@ namespace NPUDemoIntegrated.ViewModels
                     if (colorMat == null)
                     {
                         GlobalLogManager.Instance.ConsoleLog($"ERROR!! frame empty, return");
+                        _isSending = false;
                         return;
                     }
                     else { mat_tmp = colorMat.Clone(); }
@@ -236,7 +236,7 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        private void OnPointsReceived(float ampere, float watt, List<OpenCvSharp.Rect> b_box, List<IRConfig.EClassArray> cls, List<int> prob)
+        private void OnPointsReceived(float watt, float ampere, List<OpenCvSharp.Rect> b_box, List<IRConfig.EClassArray> cls, List<int> prob)
         {
             string save_path = Path.Combine(GlobalConfigManager.Instance.GetImageFolderPath(), GlobalConfigManager.Instance.GetNowImageFileName());
             GlobalLogManager.Instance.ConsoleLog($"OK.. Points Received ... Drawing Bbox");
@@ -291,6 +291,9 @@ namespace NPUDemoIntegrated.ViewModels
 
                 bitmapShow = bitmap_tmp;
                 fps = 1 / elapsed;
+
+                this.volt = watt;
+                this.amp = ampere;
 
                 resized.Dispose();
             });

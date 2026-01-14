@@ -146,8 +146,17 @@ namespace NPUDemoIntegrated.Models.IRModule
             {
                 // ADD ERROR LOG: Data Length Mismatch
                 Console.WriteLine("Data Length Mismatch");
+
+                Console.Write("Current Buffer span :: ");
+                for (int i = 0; i < bufferSpan.Length; i++)
+                {
+                    Console.Write($"{bufferSpan[i]}");
+                }
+                Console.WriteLine("");
+
                 return -3;
             }
+            
             Console.WriteLine("Protocol Successfully Found!");
 
             return startIndex;

@@ -24,7 +24,6 @@ namespace NPUDemoIntegrated.ViewModels
 
         public OBJConfig objConfig { get; }
         public SerialConfig serialConfig { get; }
-        public EConnectionState connectionState { get; }
 
         private BitmapSource _bitmap;
         private BitmapSource _bitmap_sent;
@@ -60,7 +59,7 @@ namespace NPUDemoIntegrated.ViewModels
             _serialService = service;
             objConfig = _objConfig;
             serialConfig = _serialConfig;
-            connectionState = _serialService._sharedStatus.connectionState;
+            
             //_viewModelId = DateTime.Now.ToString("\nInstance Creadted Time == HH:mm:ss.fff\n");
             //Debug.Write($"{_viewModelId}");
 
@@ -459,7 +458,7 @@ namespace NPUDemoIntegrated.ViewModels
 
             is_send_auto = false;
 
-            Thread.Sleep(10);
+            Thread.Sleep(20);
 
             _serialService.SendModuleChangeNotice(targetModule);
             _serialService.SerialReceiveEventDispose();

@@ -185,7 +185,8 @@ namespace NPUDemoIntegrated.Models.IRModule
                 GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 1");
                 SendModuleChangeNotice(EModuleType.IR);
                 Thread.Sleep(10);
-                ProcessReceivedBuffer();
+                connectionState = EConnectionState.Connected;
+                return;
             }
 
             byte[] voltageByte = new byte[4];
