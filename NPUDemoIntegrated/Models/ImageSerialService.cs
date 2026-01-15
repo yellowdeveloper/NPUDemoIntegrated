@@ -1,4 +1,5 @@
 ﻿using FTD2XX_NET;
+using Microsoft.VisualBasic;
 using NPUDemoIntegrated.GlobalManagers;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
@@ -247,8 +248,11 @@ namespace NPUDemoIntegrated.Models
                 GlobalLogManager.Instance.ConsoleLog($"Not Connected to NPU. Module Change Message will not be sent.");
                 return;
             }
+            byte MT = (byte)moduleType;
             GlobalLogManager.Instance.ConsoleLog($"SendModuleChangeNotice Called in OBJService, TargetModule is ::{moduleType}");
-            _spComm.Write(new byte[] { (byte)moduleType }, 0, 1);
+
+            GlobalLogManager.Instance.ConsoleLog($"Send 0x{MT:X2} Byte");
+            _spComm.Write(new byte[] { MT }, 0, 1);
         }
 
         public void SerialReceiveEventDispose()
@@ -279,7 +283,7 @@ namespace NPUDemoIntegrated.Models
             if (_spComm != null && _spComm.IsOpen)
             {
                 _spComm.DiscardInBuffer();
-                _spComm.DiscardOutBuffer();
+                // _spComm.DiscardOutBuffer();
             }
 
             if (_ftdi != null && _ftdi.IsOpen)

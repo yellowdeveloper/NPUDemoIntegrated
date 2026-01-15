@@ -18,9 +18,9 @@ namespace NPUDemoIntegrated.Models
         private Parity _parity = Parity.None;
         private StopBits _stopBits = StopBits.One;
 
-        private bool _isSpiEnable = false;
-        private bool _isSendAll = true;
-        private int _chunkSize = 1024;
+        private bool _isSpiEnable = true;
+        private bool _isSendAll = false;
+        private int _chunkSize = 256;
         private int _probThres = 50;
         private EImageMode _imgMode = EImageMode.RESIZE;
 

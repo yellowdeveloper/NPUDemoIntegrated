@@ -3,6 +3,7 @@ using NPUDemoIntegrated.Models;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Utils;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using OpenCvSharp.WpfExtensions;
 using System.Diagnostics;
 using System.Drawing;
@@ -47,9 +48,11 @@ namespace NPUDemoIntegrated.ViewModels
         public Mat colorMatShow;
         public BitmapSource _bitmapShow;
 
+        private double _rtFps = 0.0;
         private double _fps = 0.0;
         private float _volt = 0.0f;
         private float _amp = 0.0f;
+        private float _pixelMax;
 
         private bool _isSendAuto = false;
         private bool _isInterpolate = false;
@@ -110,7 +113,6 @@ namespace NPUDemoIntegrated.ViewModels
                     {
                         UpdateColorBitmap();
                     });
-
                 }
                 
                 if (e.PropertyName == nameof(IRModuleData.sensorTemp))
@@ -118,6 +120,14 @@ namespace NPUDemoIntegrated.ViewModels
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         OnPropertyChanged(nameof(sensorTemp));
+                    });
+                }
+
+                if (e.PropertyName == nameof(IRModuleData.fps))
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        rtFps = _serialService.Data.fps;
                     });
                 }
             };
@@ -176,7 +186,7 @@ namespace NPUDemoIntegrated.ViewModels
         private async Task SendFramePeriodically()
         {
             GlobalLogManager.Instance.ConsoleLog($"In SendFramePeriodically Key Status :: sending? {_isSending}, state? {_serialService.connectionState}, auto?{isSendAuto}");
-            if (!_isSending && _tryCount >= 20 && _serialService.connectionState == EConnectionState.WaitingForInference)
+            if (!_isSending && _tryCount >= 4 && _serialService.connectionState == EConnectionState.WaitingForInference)
             {
                 _serialService.connectionState = EConnectionState.Connected;
                 GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
@@ -264,6 +274,8 @@ namespace NPUDemoIntegrated.ViewModels
 
                 foreach (var box in _bbox)
                 {
+                    FindMaxTempInFace(cls[cnt], box);
+
                     Scalar rectColor = new Scalar(0, 0, 255, 255);  //red
                     Cv2.Rectangle(resized, box, rectColor, 2);
 
@@ -576,6 +588,15 @@ namespace NPUDemoIntegrated.ViewModels
                 OnPropertyChanged();
             }
         }
+        public double rtFps
+        {
+            get { return _rtFps; }
+            set
+            {
+                _rtFps = value;
+                OnPropertyChanged();
+            }
+        }
 
         public bool isInterpolate
         {
@@ -609,6 +630,11 @@ namespace NPUDemoIntegrated.ViewModels
             get => _moduleCommand;
             set { _moduleCommand = value; OnPropertyChanged(); }
         }
+        public float pixelMax
+        {
+            get { return _pixelMax; }
+            set { _pixelMax = value; OnPropertyChanged(); }
+        }
 
         public override void DeactivateModule(EModuleType targetModule)
         {
@@ -630,6 +656,47 @@ namespace NPUDemoIntegrated.ViewModels
 
             Thread.Sleep(20);
         }
+
+        private void FindMaxTempInFace(IRConfig.EClassArray cls, OpenCvSharp.Rect box)
+        {
+            double downsizeRatio = 32.0f / irConfig.resolution;
+
+            if (cls == IRConfig.EClassArray.face)
+            {
+                int orgTLX = box.X;
+                int orgTLY = box.Y;
+                int orgBRX = box.X + box.Width - 1;
+                int orgBRY = box.Y + box.Height - 1;
+
+                int newTLX = (int)Math.Round(orgTLX * downsizeRatio);
+                int newTLY = (int)Math.Round(orgTLY * downsizeRatio);
+                int newBRX = (int)Math.Round(orgBRX * downsizeRatio);
+                int newBRY = (int)Math.Round(orgBRY * downsizeRatio);
+
+                newTLX = Math.Clamp(newTLX, 0, 31);
+                newTLY = Math.Clamp(newTLY, 0, 31);
+                newBRX = Math.Clamp(newBRX, 0, 31);
+                newBRY = Math.Clamp(newBRY, 0, 31);
+
+                int startIndex = newTLY * 32 + newTLX;
+                int endIndex = newBRY * 32 + newBRX;
+
+                float maxTemp = 0.0f;
+
+                for (int i = startIndex; i < endIndex; i++)
+                {
+                    if (maxTemp < _serialService.Data.pixelTempArray[i])
+                    {
+                        maxTemp = _serialService.Data.pixelTempArray[i];
+                    }
+                }
+                pixelMax = maxTemp;
+                GlobalLogManager.Instance.ConsoleLog($"MAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAX{pixelMax}");
+            }
+            // else pixelMax = 0.0f;
+        }
+
+
         public override void ActivateModule()
         {
             _serialService.SerialReceiveEventSubscribe();

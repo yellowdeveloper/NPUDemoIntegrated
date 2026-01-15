@@ -121,9 +121,12 @@
                                 </Grid.RowDefinitions>
                                 <TextBlock Grid.Row="0" Text="Real-Time" FontSize="36" HorizontalAlignment="Center" FontFamily="\Fonts\NanumSquareNeo-eHv.ttf #나눔스퀘어 네오 Heavy" Margin="0,5,0,0"/>
                                 <Border Grid.Row="1" Background="Black" Margin="5,5,5,5">
-                                    <Viewbox>
-                                        <Image Source="{Binding colorBitmap}"/>
-                                    </Viewbox>
+                                    <Grid>
+                                        <Viewbox>
+                                            <Image Source="{Binding colorBitmap}"/>
+                                        </Viewbox>
+                                        <TextBlock Text="{Binding rtFps, StringFormat=F2}" Foreground="LawnGreen" FontSize="20" HorizontalAlignment="Right" Margin="0,30,10,0" FontFamily="\Fonts\NanumSquareNeo-eHv.ttf #나눔스퀘어 네오 Heavy"/>
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </Border>
@@ -141,6 +144,7 @@
                                             <Image Source="{Binding bitmapShow}"/>
                                         </Viewbox>
                                         <TextBlock Text="{Binding fps, StringFormat=F2}" Foreground="LawnGreen" FontSize="20" HorizontalAlignment="Right" Margin="0,30,10,0" FontFamily="\Fonts\NanumSquareNeo-eHv.ttf #나눔스퀘어 네오 Heavy"/>
+                                        <TextBlock Text="{Binding pixelMax, StringFormat=MAX_TEMP(face) {0:F2}}" Foreground="White" FontSize="15" HorizontalAlignment="Left" Margin="10,10,00,0" FontFamily="\Fonts\NanumSquareNeo-eHv.ttf #나눔스퀘어 네오 Heavy"/>
                                         <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80"
                                                       Background="Transparent" BorderThickness="0" IsChecked="{Binding isSendAuto, Mode=TwoWay}">
                                             <ToggleButton.Style>

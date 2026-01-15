@@ -23,8 +23,13 @@ namespace NPUDemoIntegrated.Models.IRModule
         private const byte END_HI = 0x1A;
         private const byte END_LO = 0x9C;
 
-        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private double _fps = 0.0f;
 
+        public double fps
+        {
+            get { return _fps; }
+            set { _fps = value; OnPropertyChanged(); }
+        }
         public float sensorTemp
         {
             get { return _sensorTemp; }

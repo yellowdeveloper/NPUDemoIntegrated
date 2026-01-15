@@ -72,6 +72,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 if (currentContext is BaseViewModel oldVM)
                 {
+                    GlobalLogManager.Instance.ConsoleLog($"Change from {oldVM} to {targetModule}");
                     oldVM.DeactivateModule(targetModule);
                     GlobalLogManager.Instance.ConsoleLog($"Deactivate {currentViewName}");
                 }

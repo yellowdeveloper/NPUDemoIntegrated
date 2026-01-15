@@ -4,6 +4,7 @@ using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.ViewModels;
 using OpenCvSharp;
 using System.Data;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Runtime.InteropServices;
 
@@ -23,6 +24,8 @@ namespace NPUDemoIntegrated.Models.IRModule
         public IRModuleData Data { get; } = new IRModuleData();
         
         public event Action<float, float, List<Rect>, List<IRConfig.EClassArray>, List<int>> PointsReceived;
+
+        private readonly Stopwatch _stopwatch = new Stopwatch();
 
         private readonly object _rcLock = new object();
 
@@ -264,6 +267,11 @@ namespace NPUDemoIntegrated.Models.IRModule
 
                 spModule.Write(cmdArray, 0, 6);
                 Console.WriteLine($"Start Measure Command Sent: {cmdArray}");
+
+                _stopwatch.Stop();
+                 Data.fps = 1.0f / _stopwatch.Elapsed.TotalSeconds;
+                // Console.WriteLine($"RT-FPS: {Data.fps}");
+                _stopwatch.Restart();
                 // ADD DEBUG LOG
             }
             catch (Exception ex)
