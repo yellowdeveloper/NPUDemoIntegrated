@@ -1,4 +1,5 @@
 ﻿using NPUDemoIntegrated.Utils;
+using NPUDemoIntegrated.Windows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace NPUDemoIntegrated.Models.IRModule
 {
@@ -151,14 +153,8 @@ namespace NPUDemoIntegrated.Models.IRModule
             {
                 // ADD ERROR LOG: Data Length Mismatch
                 Console.WriteLine("Data Length Mismatch");
-
-                Console.Write("Current Buffer span :: ");
-                for (int i = 0; i < bufferSpan.Length; i++)
-                {
-                    Console.Write($"{bufferSpan[i]}");
-                }
-                Console.WriteLine("");
-
+                WindowPopUp.ErrorWindowPopUp();
+                Thread.Sleep(1000);
                 return -3;
             }
             

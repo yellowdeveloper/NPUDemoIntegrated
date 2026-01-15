@@ -79,6 +79,15 @@ namespace NPUDemoIntegrated.ViewModels
 
                 if (targetView == "OBJ")
                 {
+                    if (sharedStatus.connectionState == EConnectionState.Disconnected)
+                    {
+                        OBJVM.ButtonCommand = OBJVM.ConnectCommand;
+                    }
+                    else
+                    {
+                        OBJVM.ButtonCommand = OBJVM.DisconnectCommand;
+                    }
+
                     currentContext = OBJVM;
                     currentModule = EModuleType.OBJ;
                     currentViewName = "OBJ";
@@ -86,6 +95,15 @@ namespace NPUDemoIntegrated.ViewModels
                 }
                 else if (targetView == "IR")
                 {
+                    if (sharedStatus.connectionState == EConnectionState.Disconnected)
+                    {
+                        IRVM.ButtonCommand = IRVM.ConnectCommand;
+                    }
+                    else
+                    {
+                        IRVM.ButtonCommand = IRVM.DisconnectCommand;
+                    }
+
                     currentContext = IRVM;
                     currentModule = EModuleType.IR;
                     currentViewName = "IR";

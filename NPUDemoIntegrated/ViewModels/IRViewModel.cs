@@ -53,6 +53,7 @@ namespace NPUDemoIntegrated.ViewModels
         private float _volt = 0.0f;
         private float _amp = 0.0f;
         private float _pixelMax;
+        private string _modColor;
 
         private bool _isSendAuto = false;
         private bool _isInterpolate = false;
@@ -149,7 +150,12 @@ namespace NPUDemoIntegrated.ViewModels
 
             ModuleConnectCommand = new RelayCommand(param =>
             {
-                if (_serialService.ModuleConnect() == 1) ModuleCommand = ModuleDisconnectCommand;
+                if (_serialService.ModuleConnect() == 1)
+                {
+                    ModuleCommand = ModuleDisconnectCommand;
+                    modColor = "Red";
+                }
+                
                 if (is_menu_open) is_menu_open = !is_menu_open;
             });
 
@@ -157,6 +163,7 @@ namespace NPUDemoIntegrated.ViewModels
             {
                 Task.Run(() => _serialService.ModuleDisconnect());
                 ModuleCommand = ModuleConnectCommand;
+                modColor = "White";
                 if (is_menu_open) is_menu_open = !is_menu_open;
             });
 
@@ -636,6 +643,12 @@ namespace NPUDemoIntegrated.ViewModels
             set { _pixelMax = value; OnPropertyChanged(); }
         }
 
+        public string modColor
+        {
+            get { return _modColor; }
+            set { _modColor = value; OnPropertyChanged(); }
+        }
+
         public override void DeactivateModule(EModuleType targetModule)
         {
             while (_serialService.connectionState == EConnectionState.SendingImage)
@@ -652,6 +665,9 @@ namespace NPUDemoIntegrated.ViewModels
 
             _serialService.SendModuleChangeNotice(targetModule);
             _serialService.ModuleDisconnect();
+
+            ModuleCommand = ModuleConnectCommand;
+
             _serialService.SerialReceiveEventDispose();
 
             Thread.Sleep(20);

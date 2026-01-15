@@ -1,6 +1,7 @@
 ﻿using FTD2XX_NET;
 using Microsoft.VisualBasic;
 using NPUDemoIntegrated.GlobalManagers;
+using NPUDemoIntegrated.Utils;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using System;
