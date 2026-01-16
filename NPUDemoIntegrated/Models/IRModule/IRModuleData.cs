@@ -154,7 +154,10 @@ namespace NPUDemoIntegrated.Models.IRModule
                 // ADD ERROR LOG: Data Length Mismatch
                 Console.WriteLine("Data Length Mismatch");
                 WindowPopUp.ErrorWindowPopUp();
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
+
+                Environment.Exit(-1);
+
                 return -3;
             }
             

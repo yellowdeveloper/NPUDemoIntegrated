@@ -57,7 +57,7 @@ namespace NPUDemoIntegrated.GlobalManagers
             if (comment.StartsWith("ERROR!!"))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                //Console.WriteLine(logMessage);
+                Console.WriteLine(logMessage);
             }
             else if (comment.StartsWith("WARN.."))
             {
@@ -72,7 +72,7 @@ namespace NPUDemoIntegrated.GlobalManagers
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            Console.WriteLine(logMessage);
+            //Console.WriteLine(logMessage);
         }
 
         [DllImport("kernel32.dll")]

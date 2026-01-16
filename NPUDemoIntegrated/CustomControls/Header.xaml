@@ -119,7 +119,7 @@
                 </ToggleButton.Template>
 
                 <Viewbox>
-                    <TextBlock FontFamily="\Fonts\Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
+                    <TextBlock FontFamily="pack://application:,,,/Fonts/#Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Text" Value="🔗"/>
@@ -154,7 +154,7 @@
                 </Button.Template>
 
                 <Viewbox>
-                    <TextBlock Text="⚙️" FontFamily="\Fonts\Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
+                    <TextBlock Text="⚙️" FontFamily="pack://application:,,,/Fonts/#Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="White"/>
@@ -188,7 +188,7 @@
                 </Button.Template>
 
                 <Viewbox>
-                    <TextBlock Text="X" FontFamily="\Fonts\Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
+                    <TextBlock Text="X" FontFamily="pack://application:,,,/Fonts/#Pretendard-ExtraBold.ttf #Pretendard ExtraBold">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="White"/>

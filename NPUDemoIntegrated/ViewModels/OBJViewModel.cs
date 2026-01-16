@@ -4,14 +4,18 @@ using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
 using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 
 namespace NPUDemoIntegrated.ViewModels
 {
@@ -26,9 +30,14 @@ namespace NPUDemoIntegrated.ViewModels
         public SerialConfig serialConfig { get; }
 
         private BitmapSource _bitmap;
-        private BitmapSource _bitmap_sent;
-        private Mat _frame_to_send;
-        private Mat _frame_to_draw;
+        private BitmapSource _bitmapSent;
+        private WriteableBitmap bitmapTmp;
+        private WriteableBitmap bitmapSentTmp;
+
+        private Mat frameToSend;
+        private Mat frameToDraw;
+        private Mat tmpMat = new Mat();
+
         private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
         private List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
 
@@ -119,13 +128,13 @@ namespace NPUDemoIntegrated.ViewModels
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Image Sending Method Called ... ");
 
                 _try_count = 0;
-                Mat mat_tmp = new Mat();
+
                 //Debug.Write("\nMat Variable set");
                 lock (_frame_lock)
                 {
                     //Debug.Write("\nFrameLock Called");
-                    if (_frame_to_send == null) _test_flag = true;
-                    else { mat_tmp = _frame_to_send.Clone(); }
+                    if (frameToSend == null) _test_flag = true;
+                    else { frameToSend.CopyTo(tmpMat); }
                 }
 
                 if (_test_flag)
@@ -145,20 +154,25 @@ namespace NPUDemoIntegrated.ViewModels
                 Mat resized;
                 if (serialConfig.imgMode == EImageMode.RESIZE)
                 {
-                    resized = Resize(mat_tmp);
+                    resized = Resize(tmpMat);
                 }
                 else
                 {
-                    resized = Pad(mat_tmp);
+                    resized = Pad(tmpMat);
                 }
 
                 lock (_send_lock)
                 {
                     //Debug.Write("\nSendLock Called");
-                    _frame_to_draw?.Dispose();
-                    _frame_to_draw = mat_tmp.Clone();
+                    if (frameToDraw != null && !frameToDraw.IsDisposed)
+                    {
+                        tmpMat.CopyTo(frameToDraw);
+                    }
+                    else
+                    {
+                        frameToDraw = tmpMat.Clone();
+                    }
                 }
-                mat_tmp.Dispose();
 
                 try
                 {
@@ -187,15 +201,24 @@ namespace NPUDemoIntegrated.ViewModels
                 //BitmapSource bitmap_tmp = frame.ToBitmapSource();
                 //bitmap_tmp.Freeze();
                 Application.Current.Dispatcher.Invoke(new Action(() => {
-                    BitmapSource bitmap_tmp = frame.ToBitmapSource();
-                    bitmap_tmp.Freeze();
-                    bitmap_show = bitmap_tmp;
+                    if (bitmapTmp == null || bitmapTmp.PixelWidth != frame.Width || bitmapTmp.PixelHeight != frame.Height)
+                    {
+                        bitmapTmp = new WriteableBitmap(frame.Width, frame.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
+                        bitmapShow = bitmapTmp;
+                    }
+                    WriteBufferDirectly(frame, bitmapTmp);
                 }));
 
                 lock (_frame_lock)
                 {
-                    _frame_to_send?.Dispose();
-                    _frame_to_send = frame.Clone();
+                    if (frameToSend != null && !frameToSend.IsDisposed)
+                    {
+                        frame.CopyTo(frameToSend);
+                    }
+                    else
+                    {
+                        frameToSend = frame.Clone();
+                    }
                 }
             }
             catch (Exception ex)
@@ -225,8 +248,8 @@ namespace NPUDemoIntegrated.ViewModels
             Mat frame_to_draw;
             lock (_send_lock)
             {
-                if (_frame_to_draw == null || _frame_to_draw.Empty()) return;
-                frame_to_draw = _frame_to_draw.Clone();
+                if (frameToDraw == null || frameToDraw.Empty()) return;
+                frame_to_draw = frameToDraw.Clone();
             }
 
             text_boxs.Clear();
@@ -252,11 +275,15 @@ namespace NPUDemoIntegrated.ViewModels
             var elapsed = _stopwatch.Elapsed.TotalSeconds;
 
             GlobalLogManager.Instance.ConsoleLog($"volt & amp: {amp}, {volt}");
-            Application.Current.Dispatcher.Invoke(() => {
-                BitmapSource bitmap_tmp = frame_to_draw.ToBitmapSource();
-                bitmap_tmp.Freeze();
 
-                bitmap_sent = bitmap_tmp;
+            Application.Current.Dispatcher.Invoke(() => {
+                if (bitmapSentTmp == null || bitmapSentTmp.PixelWidth != frame_to_draw.Width || bitmapSentTmp.PixelHeight != frame_to_draw.Height)
+                {
+                    bitmapSentTmp = new WriteableBitmap(frame_to_draw.Width, frame_to_draw.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
+                    bitmapSent = bitmapSentTmp;
+                }
+                WriteBufferDirectly(frame_to_draw, bitmapSentTmp);
+
                 fps = 1 / elapsed;
 
                 this.volt = volt;
@@ -382,16 +409,57 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        public BitmapSource bitmap_show
+        private unsafe void WriteBufferDirectly(Mat frame, WriteableBitmap tmp)
+        {
+            tmp.Lock();
+
+            try
+            {
+                IntPtr framePtr = frame.Data;
+                IntPtr tmpPtr = tmp.BackBuffer;
+
+                int frameStride = (int)frame.Step();
+                int tmpStride = tmp.BackBufferStride;
+                int height = frame.Height;
+
+                int totalLength = frame.Width * frame.ElemSize();
+
+                if (frameStride == tmpStride)
+                {
+                    long totalBytes = (long)frameStride * height;
+                    Buffer.MemoryCopy((void*)framePtr, (void*)tmpPtr, totalBytes, totalBytes);
+                }
+                else
+                {
+                    byte* pSrc = (byte*)framePtr;
+                    byte* pDst = (byte*)tmpPtr;
+
+                    for (int row = 0; row < height; row++)
+                    {
+                        Buffer.MemoryCopy(pSrc, pDst, tmpStride, totalLength);
+                        pSrc += frameStride;
+                        pDst += tmpStride;
+                    }
+                }
+                tmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, tmp.PixelWidth, tmp.PixelHeight));
+            }
+
+            finally
+            {
+                tmp.Unlock();
+            }
+        }
+
+        public BitmapSource bitmapShow
         {
             get => _bitmap;
             set { _bitmap = value; OnPropertyChanged(); }
         }
 
-        public BitmapSource bitmap_sent
+        public BitmapSource bitmapSent
         {
-            get => _bitmap_sent;
-            set { _bitmap_sent = value; OnPropertyChanged(); }
+            get => _bitmapSent;
+            set { _bitmapSent = value; OnPropertyChanged(); }
         }
 
         public string cn_dn
@@ -471,6 +539,18 @@ namespace NPUDemoIntegrated.ViewModels
             _serialService.SerialReceiveEventSubscribe();
         }
 
+        public void checkAndCopyMat()
+        {
+            if (frameToDraw != null && !frameToDraw.IsDisposed)
+            {
+                tmpMat.CopyTo(frameToDraw);
+            }
+            else
+            {
+                frameToDraw = tmpMat.Clone();
+            }
+        }
+
         public override void Dispose()
         {
             _timer.Dispose();
@@ -478,8 +558,9 @@ namespace NPUDemoIntegrated.ViewModels
             _serialService.PointsReceived -= OnPointsReceived;
             
             _web_cam_control.Dispose();
-            if (_frame_to_draw != null) _frame_to_draw.Dispose();
-            if (_frame_to_send != null) _frame_to_send.Dispose();
+            if (frameToDraw != null) frameToDraw.Dispose();
+            if (frameToSend != null) frameToSend.Dispose();
+            if (tmpMat != null) tmpMat.Dispose();
         }
     }
 }
