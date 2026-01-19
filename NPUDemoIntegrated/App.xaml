@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:NPUDemoIntegrated"
              StartupUri="Windows/MainWindow.xaml">
     <Application.Resources>
-         
+        <FontFamily x:Key="FontGMarketSans">pack://application:,,,/Fonts/#G마켓 산스 TTF</FontFamily>
+        <FontFamily x:Key="FontPretendard">pack://application:,,,/Fonts/#Pretendard</FontFamily>
+        <FontFamily x:Key="FontNanumNeo">pack://application:,,,/Fonts/#나눔스퀘어 네오</FontFamily>
     </Application.Resources>
 </Application>
