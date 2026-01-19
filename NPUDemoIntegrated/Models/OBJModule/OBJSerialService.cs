@@ -83,12 +83,12 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
                     if (actually_read > 0) receivedBuffer.AddRange(buffer.Take(actually_read));
 
-                    Console.WriteLine("");
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        Console.Write($"{buffer[i]:X2}");
-                    }
-                    Console.WriteLine("");
+                    //Console.WriteLine("");
+                    //for (int i = 0; i < buffer.Length; i++)
+                    //{
+                    //    Console.Write($"{buffer[i]:X2}");
+                    //}
+                    //Console.WriteLine("");
 
                     FindData();
                     if (pureData.Count >= 1)
@@ -197,7 +197,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                 int w = BitConverter.ToInt16(rectData, 6);
                 int h = BitConverter.ToInt16(rectData, 8);
 
-                GlobalLogManager.Instance.ConsoleLog($"Before Resize :: x={x}, y={y}, w={w}, h={h}");
+                // GlobalLogManager.Instance.ConsoleLog($"Before Resize :: x={x}, y={y}, w={w}, h={h}");
 
                 int x_new = x;
                 int y_new = y;
@@ -225,7 +225,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     w_new = (int)(w * ratio_x);
                     h_new = (int)(h * ratio_y);
 
-                    GlobalLogManager.Instance.ConsoleLog($"After Resize :: x={x_new}, y={y_new}, w={w_new}, h={h_new}");
+                    // GlobalLogManager.Instance.ConsoleLog($"After Resize :: x={x_new}, y={y_new}, w={w_new}, h={h_new}");
                 }
                 else
                 {
@@ -249,10 +249,10 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     w_new = (int)(w * ratio);
                     h_new = (int)(h * ratio);
 
-                    GlobalLogManager.Instance.ConsoleLog($"After Resize :: x={x_new}, y={y_new}, w={w_new}, h={h_new}");
+                    // GlobalLogManager.Instance.ConsoleLog($"After Resize :: x={x_new}, y={y_new}, w={w_new}, h={h_new}");
                 }
 
-                GlobalLogManager.Instance.ConsoleLog($"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
+                // GlobalLogManager.Instance.ConsoleLog($"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Num {i + 1} | class {cls} | probability {prob} :: x={x}, y={y}, w={w}, h={h}");
 
                 if (prob >= _serialConfig.probThres && cls == 0)
@@ -262,7 +262,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     received_rects.Add(new Rect(x_new, y_new, w_new, h_new));
                 }
             }
-            GlobalLogManager.Instance.ConsoleLog($"amp, volt before invoke :: {ampere}, {voltage}");
+            // GlobalLogManager.Instance.ConsoleLog($"amp, volt before invoke :: {ampere}, {voltage}");
             PointsReceived?.Invoke(ampere, voltage, received_rects, received_cls, received_probs);
 
             connectionState = EConnectionState.Connected;

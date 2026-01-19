@@ -104,13 +104,13 @@ namespace NPUDemoIntegrated.Models
                         footerTryCnt = 0;
                     }
                     footerTryCnt++;
-                    GlobalLogManager.Instance.ConsoleLog($"WARN.. No Footer Found in Buffer Find Count:: {footerTryCnt}");
+                    // GlobalLogManager.Instance.ConsoleLog($"WARN.. No Footer Found in Buffer Find Count:: {footerTryCnt}");
                     Thread.Sleep(1);
                 }
             }
             else
             {
-                GlobalLogManager.Instance.ConsoleLog("WARN.. No Header Found in Buffer... Find Again");
+                // GlobalLogManager.Instance.ConsoleLog("WARN.. No Header Found in Buffer... Find Again");
             }
         }
 

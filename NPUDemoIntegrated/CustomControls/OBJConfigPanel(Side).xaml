@@ -92,14 +92,14 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Config" Foreground="Black" FontSize="20" Margin="5,10,5,5"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Medium"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Medium"/>
                     <Button Grid.Column="2" Command="{Binding SaveCommand}" Margin="10,2.5,5,2.5" BorderBrush="Black" Background="{x:Null}">
                         <TextBlock Text="Save" Foreground="Black" FontSize="16" Margin="5,10,5,5"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light" />
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     </Button>
                     <Button Grid.Column="3" Command="{Binding LoadCommand}" Margin="5,2.5,10,2.5" VerticalContentAlignment="Center" BorderBrush="Black" Background="{x:Null}">
                         <TextBlock  Text="Load" Foreground="Black" FontSize="16" Margin="5,10,5,5"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     </Button>
                 </Grid>
             </Border>
@@ -111,7 +111,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Com Port" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                       FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                       FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <TextBox Grid.Column="1" Margin="10" Text="{Binding serialConfig.portName, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
                              LostFocus ="PNTextBox_LostFocus" GotFocus="TextBox_GotFocus" VerticalContentAlignment="Center" TextAlignment="Center" FontSize="20" CharacterCasing="Upper">
                     </TextBox>
@@ -126,7 +126,7 @@
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Baud Rate" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                       FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                       FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <TextBox Grid.Column="1" Margin="10"  Text="{Binding serialConfig.baudRate, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
                          LostFocus ="BaudTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" TextAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
@@ -138,7 +138,7 @@
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Data Bits" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <TextBox Grid.Column="1" Margin="10"  Text="{Binding serialConfig.dataBits, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
                          LostFocus ="DatTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" TextAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
@@ -151,7 +151,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Packet Size" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <TextBox Grid.Column="1" Margin="10"  Text="{Binding serialConfig.chunkSize, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
                          LostFocus ="PacketTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" TextAlignment="Center" VerticalContentAlignment="Center">
                         <TextBox.Style>
@@ -166,7 +166,7 @@
                     </TextBox>
                     <CheckBox Grid.Column="2"  IsChecked="{Binding serialConfig.isSendAll}" Content="Send All" HorizontalAlignment="Center"
                           VerticalAlignment="Center" Margin="0,0,5,0" FontSize="18" VerticalContentAlignment="Center"
-                          FontFamily="pack://application:,,,/Fonts/#나눔스퀘어 네오 Regular"/>
+                          FontFamily="pack://application:,,,/Fonts/#나눔스퀘어 네오" FontWeight="Regular"/>
                 </Grid>
             </Border>
             <Border Grid.Row="5" BorderBrush="DarkGray" BorderThickness="0,0,0,1">
@@ -176,7 +176,7 @@
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Parity Bits" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <ComboBox Grid.Column="1" Margin="10"  ItemsSource="{Binding Source={StaticResource ParityEnumValues}}"
                           SelectedItem="{Binding serialConfig.parity, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" FontSize="22" VerticalContentAlignment="Center"
                           HorizontalContentAlignment="Center"/>
@@ -189,7 +189,7 @@
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Stop Bits" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <ComboBox Grid.Column="1" Margin="10" ItemsSource="{Binding Source={StaticResource StopBitsEnumValues}}"
                           SelectedItem="{Binding serialConfig.stopBits, UpdateSourceTrigger=LostFocus, Mode=TwoWay}"  FontSize="22" VerticalContentAlignment="Center"
                           HorizontalContentAlignment="Center"/>
@@ -202,7 +202,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Image Mode" Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <ComboBox Grid.Column="1" Margin="10" ItemsSource="{Binding Source={StaticResource ImageModeEnumValues}}"
                           SelectedItem="{Binding serialConfig.imgMode}"  FontSize="22" VerticalContentAlignment="Center"
                           HorizontalContentAlignment="Center"/>
@@ -215,7 +215,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Image Size   " Foreground="Black" FontSize="20" Margin="5,10,5,5" VerticalAlignment="Center"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light"/>
                     <ComboBox Grid.Column="1" Margin="10" ItemsSource="{Binding Source={StaticResource ImageSizeEnumValues}}"
                           SelectedItem="{Binding objConfig.imgSize}" FontSize="22" VerticalContentAlignment="Center"
                           HorizontalContentAlignment="Center"/>
@@ -228,7 +228,7 @@
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Prob Mask" Foreground="Black" FontSize="20" Margin="5,25,6,0" VerticalAlignment="Top"
-                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF Light" Grid.ColumnSpan="2"/>
+                           FontFamily="pack://application:,,,/Fonts/#G마켓 산스 TTF" FontWeight="Light" Grid.ColumnSpan="2"/>
                     <TextBox Grid.Column="2" Margin="10,10,10,10" Text="{Binding serialConfig.probThres, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" Foreground="Gray"
                          LostFocus ="ProbTextBox_LostFocus" GotFocus="TextBox_GotFocus" FontSize="22" VerticalContentAlignment="Center"
                           HorizontalContentAlignment="Center"/>

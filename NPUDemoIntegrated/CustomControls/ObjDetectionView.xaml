@@ -19,7 +19,7 @@
                         <RowDefinition Height="45"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="Real-Time" FontSize="36" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Fonts/#나눔스퀘어 네오 Heavy" Margin="0,5,0,0"/>
+                        <TextBlock Grid.Row="0" Text="Real-Time" FontSize="36" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Fonts/#나눔스퀘어 네오" FontWeight="Heavy" Margin="0,5,0,0"/>
                     <Border Grid.Row="1" Background="Black" Margin="5,5,5,5">
                         <Viewbox>
                             <Border Background="White" Width="4" Height="3">
@@ -35,7 +35,7 @@
                         <RowDefinition Height="45"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="Doksan-NPU" FontSize="36" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Fonts/#Pretendard Bold" Margin="0,5,0,0"/>
+                        <TextBlock Grid.Row="0" Text="Doksan-NPU" FontSize="36" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Fonts/#Pretendard" FontWeight="Bold" Margin="0,5,0,0"/>
                     <Border Grid.Row="1" Background="Black" Margin="5,5,5,5">
                         <Grid>
                             <Viewbox>
@@ -43,7 +43,7 @@
                                     <Image Source="{Binding bitmapSent}"/>
                                 </Border>
                             </Viewbox>
-                                <TextBlock Text="{Binding fps, StringFormat=F2}" Foreground="LawnGreen" FontSize="20" HorizontalAlignment="Right" Margin="0,30,10,0" FontFamily="pack://application:,,,/Fonts/#나눔스퀘어 네오 Heavy"/>
+                                <TextBlock Text="{Binding fps, StringFormat=F2}" Foreground="LawnGreen" FontSize="20" HorizontalAlignment="Right" Margin="0,30,10,0" FontFamily="pack://application:,,,/Fonts/#나눔스퀘어 네오" FontWeight="Heavy"/>
                             <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80"
                             Background="Transparent" BorderThickness="0" IsChecked="{Binding is_send_auto, Mode=TwoWay}">
                                 <ToggleButton.Style>
