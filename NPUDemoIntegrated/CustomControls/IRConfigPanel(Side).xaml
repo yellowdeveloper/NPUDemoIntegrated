@@ -157,16 +157,7 @@
                                FontFamily="{StaticResource FontGMarketSans}" FontWeight="Light"/>
                     <TextBox Grid.Column="1" Margin="10"  Text="{Binding serialConfig.chunkSize}" Foreground="Gray"
                              GotFocus="TextBox_GotFocus" LostFocus="PacketTextBox_LostFocus"  FontSize="22"
-                             TextAlignment="Center" VerticalContentAlignment="Center">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding serialConfig.isSendAll}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBox.Style>
+                             TextAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource PacketTextBox}">
                     </TextBox>
                     <CheckBox Grid.Column="2"  IsChecked="{Binding serialConfig.isSendAll}" Content="Send All" HorizontalAlignment="Center"
                               VerticalAlignment="Center" Margin="0,0,5,0" FontSize="18" VerticalContentAlignment="Center"

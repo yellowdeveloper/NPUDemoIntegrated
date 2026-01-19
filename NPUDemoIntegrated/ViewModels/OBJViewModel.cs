@@ -300,9 +300,9 @@ namespace NPUDemoIntegrated.ViewModels
         private OpenCvSharp.Rect DrawTextWithBox(Mat frame, OBJConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
         {
             string text = $"class: {cls.ToString()}  prob: {prob}";
-            var font = HersheyFonts.HersheyTriplex;
-            double font_scale = 0.6;
-            int thickness = 1;
+            var font = HersheyFonts.Italic;
+            double font_scale = 0.8;
+            int thickness = 2;
 
             OpenCvSharp.Size text_size = Cv2.GetTextSize(text, font, font_scale, thickness, out int baseline);
             var coord = new OpenCvSharp.Point(box.X - 1, box.Y - 1);
@@ -332,7 +332,7 @@ namespace NPUDemoIntegrated.ViewModels
             coord.Y = background_rect.Y + text_size.Height;
 
             Cv2.Rectangle(frame, background_rect, Scalar.Red, -1);
-            Cv2.PutText(frame, text, coord, font, font_scale, Scalar.Yellow, thickness);
+            Cv2.PutText(frame, text, coord, font, font_scale, Scalar.White, thickness);
 
             GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");

@@ -283,7 +283,7 @@ namespace NPUDemoIntegrated.ViewModels
                 {
                     FindMaxTempInFace(cls[cnt], box);
 
-                    Scalar rectColor = new Scalar(0, 0, 255, 255);  //red
+                    Scalar rectColor = new Scalar(68, 156, 74, 255);  // Dark Green
                     Cv2.Rectangle(resized, box, rectColor, 2);
 
                     text_boxs.Add(DrawTextWithBox(resized, cls[cnt], prob[cnt], box));
@@ -325,9 +325,9 @@ namespace NPUDemoIntegrated.ViewModels
         private OpenCvSharp.Rect DrawTextWithBox(Mat frame, IRConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
         {
             string text = $"class: {cls.ToString()}  prob: {prob}";
-            var font = HersheyFonts.HersheyTriplex;
-            double font_scale = 0.6;
-            int thickness = 1;
+            var font = HersheyFonts.Italic;
+            double font_scale = 0.8;
+            int thickness = 2;
 
             OpenCvSharp.Size text_size = Cv2.GetTextSize(text, font, font_scale, thickness, out int baseline);
             var coord = new OpenCvSharp.Point(box.X - 1, box.Y - 1);
@@ -345,8 +345,8 @@ namespace NPUDemoIntegrated.ViewModels
                 coord.X = box.X - ((box.X + text_size.Width) - 512);
             }
 
-            Scalar rectColor = new Scalar(0, 0, 255, 255);  //red
-            Scalar textColor = new Scalar(0, 255, 255, 255);//yellow
+            Scalar rectColor = new Scalar(68, 156, 74, 255);  // Dark Green
+            Scalar textColor = new Scalar(255, 255, 255, 255);  // White
 
             OpenCvSharp.Rect background_rect = new OpenCvSharp.Rect(
                 coord.X,

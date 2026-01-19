@@ -20,7 +20,7 @@
 
             <Grid>
                 <Button Grid.Column="0" Command="{Binding DataContext.SwitchViewCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                        Foreground="White" FontSize="20" HorizontalAlignment="Center" Margin="10">
+                        Foreground="White" FontSize="20" HorizontalAlignment="Center" Margin="10" Style="{StaticResource SwitchVM}">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border Background="{TemplateBinding Background}" BorderThickness="0" BorderBrush="Red">
@@ -28,31 +28,6 @@
                             </Border>
                         </ControlTemplate>
                     </Button.Template>
-                    
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="OBJ">
-                                    <Setter Property="Content" Value="Switch ▶ &#xA;IR Detection" />
-                                    <Setter Property="CommandParameter" Value="IR" />
-                                </DataTrigger>
-                                
-                                <DataTrigger Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="IR">
-                                    <Setter Property="Content" Value="Switch ▶ &#xA;OBJ Detection" />
-                                    <Setter Property="CommandParameter" Value="OBJ" />
-                                </DataTrigger>
-                                
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#FF212529"/>
-                                </Trigger>
-
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter Property="Background" Value="#FF495057"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
                 </Button>
 
                 <Button Background="Transparent" Command="{Binding ToggleMenuCommand}">
@@ -119,28 +94,7 @@
                 </ToggleButton.Template>
 
                 <Viewbox>
-                    <TextBlock FontFamily="{StaticResource FontPretendard}" FontWeight="ExtraBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Text" Value="🔗"/>
-                                <Setter Property="Foreground" Value="{Binding cn_dn}"/>
-
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
-                                        <Setter Property="Foreground" Value="{Binding cn_dn}"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
-                                        <Setter Property="Foreground" Value="LightGray"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
-                                        <Setter Property="Foreground" Value="DarkGray"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <TextBlock FontFamily="{StaticResource FontPretendard}" FontWeight="ExtraBold" Style="{StaticResource ConnectionNPU}"/>
                 </Viewbox>
             </ToggleButton>
 
@@ -154,27 +108,7 @@
                 </Button.Template>
 
                 <Viewbox>
-                    <TextBlock Text="⚙️" FontFamily="{StaticResource FontPretendard}" FontWeight="ExtraBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="White"/>
-
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding is_menu_open}" Value="True">
-                                        <Setter Property="Foreground" Value="Red"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                                        <Setter Property="Foreground" Value="LightGray"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                                        <Setter Property="Foreground" Value="DarkGray"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <TextBlock Text="⚙️" FontFamily="{StaticResource FontPretendard}" FontWeight="ExtraBold" Style="{StaticResource OptToggle}"/>
                 </Viewbox>
             </Button>
 
@@ -188,23 +122,7 @@
                 </Button.Template>
 
                 <Viewbox>
-                    <TextBlock Text="X" FontFamily="{StaticResource FontPretendard}" FontWeight="ExtraBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="White"/>
-
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                                        <Setter Property="Foreground" Value="LightGray"/>
-                                    </DataTrigger>
-
-                                    <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
-                                        <Setter Property="Foreground" Value="DarkGray"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <TextBlock Text="X" FontFamily="{StaticResource FontPretendard}" FontWeight="ExtraBold" Style="{StaticResource CloseProgram}"/>
                 </Viewbox>
             </Button>
         </Grid>
