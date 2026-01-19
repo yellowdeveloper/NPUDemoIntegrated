@@ -55,7 +55,11 @@ namespace NPUDemoIntegrated.Models.OBJModule
                     }
                     GlobalLogManager.Instance.ConsoleLog($"WARN.. sending test array");
                 }
-                else Marshal.Copy(frame.Data, imageToSend, 0, imageToSend.Length); // fix 
+                else
+                {
+                    Marshal.Copy(frame.Data, imageToSend, 0, imageToSend.Length); // fix 
+                    frame.Dispose();
+                }
 
                 fragmentIndex = 0;
                 connectionState = EConnectionState.SendingImage;
@@ -164,10 +168,11 @@ namespace NPUDemoIntegrated.Models.OBJModule
             voltageByte[3] = pureData[pureData.Count - 5];
             
             byte[] ampereByte = new byte[4];
-            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 4]}");
-            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 3]}");
-            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 2]}");
-            GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 1]}");
+            // Check Packet 
+            // GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 4]}");
+            // GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 3]}");
+            // GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 2]}");
+            // GlobalLogManager.Instance.ConsoleLog($"{pureData[pureData.Count - 1]}");
             ampereByte[0] = pureData[pureData.Count - 4];
             ampereByte[1] = pureData[pureData.Count - 3];
             ampereByte[2] = pureData[pureData.Count - 2];
@@ -178,7 +183,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
             float voltage = ConvertByteArray(voltageByte);
             float ampere = ConvertByteArray(ampereByte);
 
-            GlobalLogManager.Instance.ConsoleLog($"{voltage} {ampere}");
+            // GlobalLogManager.Instance.ConsoleLog($"{voltage} {ampere}");
 
             for (int i = 0; i < detected_cnt; i++)
             {

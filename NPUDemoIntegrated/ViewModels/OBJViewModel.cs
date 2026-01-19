@@ -235,7 +235,7 @@ namespace NPUDemoIntegrated.ViewModels
         private void OnPointsReceived(float volt, float amp, List<OpenCvSharp.Rect> b_box, List<OBJConfig.EClassArray> cls, List<int> prob)
         {
             string save_path = Path.Combine(GlobalConfigManager.Instance.GetImageFolderPath(), GlobalConfigManager.Instance.GetNowImageFileName());
-            GlobalLogManager.Instance.ConsoleLog($"OK.. Points Received ... Drawing Bbox");
+            // GlobalLogManager.Instance.ConsoleLog($"OK.. Points Received ... Drawing Bbox");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Points Received ... Drawing Bbox");
 
             int cnt = 0;
@@ -265,7 +265,7 @@ namespace NPUDemoIntegrated.ViewModels
                 // Cv2.ImWrite(save_path, frame_to_draw);
             }
 
-            GlobalLogManager.Instance.ConsoleLog("OK.. Bbox drawing Completed ... Check Image\n");
+            // GlobalLogManager.Instance.ConsoleLog("OK.. Bbox drawing Completed ... Check Image\n");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Bbox drawing Completed ... Check Image\n");
 
             // BitmapSource bitmap_tmp = frame_to_draw.ToBitmapSource();
@@ -274,7 +274,7 @@ namespace NPUDemoIntegrated.ViewModels
             _stopwatch.Stop();
             var elapsed = _stopwatch.Elapsed.TotalSeconds;
 
-            GlobalLogManager.Instance.ConsoleLog($"volt & amp: {amp}, {volt}");
+            // GlobalLogManager.Instance.ConsoleLog($"volt & amp: {amp}, {volt}");
 
             Application.Current.Dispatcher.Invoke(() => {
                 if (bitmapSentTmp == null || bitmapSentTmp.PixelWidth != frame_to_draw.Width || bitmapSentTmp.PixelHeight != frame_to_draw.Height)
@@ -292,7 +292,7 @@ namespace NPUDemoIntegrated.ViewModels
                 frame_to_draw.Dispose();
             });
 
-            GlobalLogManager.Instance.ConsoleLog($"Frame Rate:: {fps}");
+            // GlobalLogManager.Instance.ConsoleLog($"Frame Rate:: {fps}");
 
             // frame_to_draw.Dispose();
         }

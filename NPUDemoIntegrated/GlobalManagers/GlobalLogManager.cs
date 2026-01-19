@@ -49,6 +49,7 @@ namespace NPUDemoIntegrated.GlobalManagers
             [CallerLineNumber] int lineNumber = 0,
             [CallerMemberName] string memberName = "")
         {
+            return;
             string now_time = DateTime.Now.ToString("HH:mm:ss");
             string fileName = Path.GetFileName(filePath);
             string source_line = $"[{now_time}]:{fileName}:{memberName}(): Line {lineNumber}";
@@ -72,7 +73,7 @@ namespace NPUDemoIntegrated.GlobalManagers
                 Console.ForegroundColor = ConsoleColor.White;
             }
 
-            //Console.WriteLine(logMessage);
+            Console.WriteLine(logMessage);
         }
 
         [DllImport("kernel32.dll")]
