@@ -360,7 +360,7 @@ namespace NPUDemoIntegrated.ViewModels
             coord.Y = background_rect.Y + text_size.Height;
 
             Cv2.Rectangle(frame, background_rect, rectColor, -1);
-            Cv2.PutText(frame, text, coord, font, font_scale, textColor, thickness);
+            Cv2.PutText(frame, text, coord, font, font_scale, textColor, thickness, LineTypes.AntiAlias);
 
             GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");
