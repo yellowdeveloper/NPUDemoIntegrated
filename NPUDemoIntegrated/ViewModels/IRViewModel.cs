@@ -38,7 +38,6 @@ namespace NPUDemoIntegrated.ViewModels
         private ICommand _moduleCommand;
 
         private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
-        private List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
         public float[] pixelArray => _serialService.Data.pixelTempArray;
         public float sensorTemp => _serialService.Data.sensorTemp;
         private float[] _processedBuffer;
@@ -59,6 +58,7 @@ namespace NPUDemoIntegrated.ViewModels
 
         private bool _isSending = false;
         private int _tryCount = 0;
+        private bool isUpdated = false;
 
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time Infrared Image input and on-device object detection inference";
@@ -87,7 +87,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 if (_isSendAuto)
                 {
-                    _timer.Change(0, 500);
+                    _timer.Change(0, 10);
                     GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
                     GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
                 }
@@ -290,14 +290,14 @@ namespace NPUDemoIntegrated.ViewModels
         private async Task SendFramePeriodically()
         {
             GlobalLogManager.Instance.ConsoleLog($"In SendFramePeriodically Key Status :: sending? {_isSending}, state? {_serialService.connectionState}, auto?{isSendAuto}");
-            if (!_isSending && _tryCount >= 4 && _serialService.connectionState == EConnectionState.WaitingForInference)
+            if (!_isSending && _tryCount >= 10 && _serialService.connectionState == EConnectionState.WaitingForInference && isUpdated)
             {
                 _serialService.connectionState = EConnectionState.Connected;
                 GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
             }
 
-            if (!_isSending && _serialService.connectionState == EConnectionState.Connected)
+            if (!_isSending && _serialService.connectionState == EConnectionState.Connected && isUpdated)
             {
                 _isSending = true;
 
@@ -338,6 +338,7 @@ namespace NPUDemoIntegrated.ViewModels
                 }
                 finally
                 {
+                    isUpdated = false;
                     _isSending = false;
                     converted.Dispose();
                 }
@@ -369,8 +370,8 @@ namespace NPUDemoIntegrated.ViewModels
                 frame_to_draw = colorMatShow.Clone();
             }
 
-            text_boxs.Clear();
 
+            List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
             Mat resized = new Mat();
             lock (_bbox_lock)
             {
@@ -381,9 +382,10 @@ namespace NPUDemoIntegrated.ViewModels
                     FindMaxTempInFace(cls[cnt], box);
 
                     Scalar rectColor = new Scalar(68, 156, 74, 255);  // Dark Green
+                    Scalar textColor = new Scalar(255, 255, 255, 255);  // White
                     Cv2.Rectangle(resized, box, rectColor, 2);
 
-                    text_boxs.Add(DrawTextWithBox(resized, cls[cnt], prob[cnt], box));
+                    text_boxs.Add(UtilsForMatImage.DrawTextWithBox(resized, rectColor, textColor, cls[cnt], prob[cnt], box, text_boxs));
                     cnt++;
                 }
 
@@ -417,76 +419,6 @@ namespace NPUDemoIntegrated.ViewModels
             GlobalLogManager.Instance.ConsoleLog($"Frame Rate:: {fps}");
 
             // frame_to_draw.Dispose();
-        }
-
-        private OpenCvSharp.Rect DrawTextWithBox(Mat frame, IRConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
-        {
-            string text = $"class: {cls.ToString()}  prob: {prob}";
-            var font = HersheyFonts.Italic;
-            double font_scale = 0.8;
-            int thickness = 2;
-
-            OpenCvSharp.Size text_size = Cv2.GetTextSize(text, font, font_scale, thickness, out int baseline);
-            var coord = new OpenCvSharp.Point(box.X - 1, box.Y - 1);
-
-            if (box.Y - text_size.Height < 0)
-            {
-                GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
-                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-                coord.Y = box.Y + text_size.Height + 1;
-            }
-            if (box.X + text_size.Width > 512)
-            {
-                GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
-                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-                coord.X = box.X - ((box.X + text_size.Width) - 512);
-            }
-
-            Scalar rectColor = new Scalar(68, 156, 74, 255);  // Dark Green
-            Scalar textColor = new Scalar(255, 255, 255, 255);  // White
-
-            OpenCvSharp.Rect background_rect = new OpenCvSharp.Rect(
-                coord.X,
-                coord.Y - text_size.Height - baseline,
-                text_size.Width,
-                text_size.Height + 1 * baseline
-                );
-
-            background_rect = AvoidTextBoxIntersection(background_rect);
-            coord.X = background_rect.X;
-            coord.Y = background_rect.Y + text_size.Height;
-
-            Cv2.Rectangle(frame, background_rect, rectColor, -1);
-            Cv2.PutText(frame, text, coord, font, font_scale, textColor, thickness, LineTypes.AntiAlias);
-
-            GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
-            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");
-
-            return background_rect;
-        }
-
-        private OpenCvSharp.Rect AvoidTextBoxIntersection(OpenCvSharp.Rect text_box)
-        {
-            if (text_boxs.Count == 0) return text_box;
-
-            bool is_intersect = false;
-
-            do
-            {
-                is_intersect = false;
-                foreach (var box in text_boxs)
-                {
-                    if (text_box.IntersectsWith(box))
-                    {
-                        GlobalLogManager.Instance.ConsoleLog("Text Box Intersection Found! Avoiding ...");
-                        GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Intersection Found! Avoiding ...");
-                        text_box.Y = box.Bottom + 3;
-                        is_intersect = true;
-                        break;
-                    }
-                }
-            } while (is_intersect);
-            return text_box;
         }
 
         unsafe private void UpdateColorBitmap()
@@ -532,6 +464,8 @@ namespace NPUDemoIntegrated.ViewModels
 
             colorBitmap.AddDirtyRect(new Int32Rect(0, 0, resolution, resolution));
             colorBitmap.Unlock();
+
+            isUpdated = true;
 
             OnPropertyChanged(nameof(colorBitmap));
         }

@@ -30,7 +30,7 @@ namespace NPUDemoIntegrated.ViewModels
         /// </summary>
         private readonly WebCamControl webCamControl;
         private readonly OBJSerialService serialService;
-        private readonly Timer timer;
+        // private readonly Timer timer;
         private readonly Stopwatch stopwatch = new Stopwatch();
 
         /// <summary>
@@ -55,7 +55,6 @@ namespace NPUDemoIntegrated.ViewModels
         /// List Variables for Drawing Inference Results
         /// </summary>
         private List<OpenCvSharp.Rect> bbox = new List<OpenCvSharp.Rect>();
-        private List<OpenCvSharp.Rect> textBoxs = new List<OpenCvSharp.Rect>();
 
         /// <summary>
         /// UI Binded Properties
@@ -148,17 +147,6 @@ namespace NPUDemoIntegrated.ViewModels
             {
                 _isSendAuto = value;
                 OnPropertyChanged();
-
-                if (_isSendAuto)
-                {
-                    timer.Change(0, 10);
-                    GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
-                    GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
-                }
-                else
-                {
-                    timer.Change(Timeout.Infinite, Timeout.Infinite);
-                }
             }
         }
 
@@ -237,8 +225,6 @@ namespace NPUDemoIntegrated.ViewModels
                 if (is_menu_open) is_menu_open = !is_menu_open;
                 // GlobalLogManager.Instance.ConsoleLog("Manual Send Completed");
             });
-
-            timer = new Timer(async (_) => await SendFramePeriodically(), null, Timeout.Infinite, Timeout.Infinite);
         }
 
         /// <summary>
@@ -250,7 +236,7 @@ namespace NPUDemoIntegrated.ViewModels
         /// <returns></returns>
         private async Task SendFramePeriodically()
         {
-            if (!isSending && tryCount >= 20 && serialService.connectionState == EConnectionState.WaitingForInference)
+            if (!isSending && tryCount >= 15 && serialService.connectionState == EConnectionState.WaitingForInference)
             {
                 serialService.connectionState = EConnectionState.Connected;
                 GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {serialService.connectionState}");
@@ -361,6 +347,12 @@ namespace NPUDemoIntegrated.ViewModels
                         frameToSend = frame.Clone();
                     }
                 }
+
+                if (isSendAuto)
+                {
+                    _ = SendFramePeriodically();
+                }
+
             }
             catch (Exception ex)
             {
@@ -414,14 +406,14 @@ namespace NPUDemoIntegrated.ViewModels
                 frame_to_draw = frameToDraw.Clone();
             }
 
-            textBoxs.Clear();
+            List<OpenCvSharp.Rect> textBoxs = new List<OpenCvSharp.Rect>();
             lock (bboxLock)
             {
                 foreach (var box in bbox)
                 {
                     Cv2.Rectangle(frame_to_draw, box, Scalar.Red, 2);
 
-                    textBoxs.Add(DrawTextWithBox(frame_to_draw, cls[cnt], prob[cnt], box));
+                    textBoxs.Add(UtilsForMatImage.DrawTextWithBox(frame_to_draw, Scalar.Red, Scalar.White, cls[cnt], prob[cnt], box, textBoxs));
                     cnt++;
                 }
                 // Cv2.ImWrite(save_path, frame_to_draw);
@@ -454,86 +446,6 @@ namespace NPUDemoIntegrated.ViewModels
             // GlobalLogManager.Instance.ConsoleLog($"Frame Rate:: {fps}");
         }
 
-        /// <summary>
-        /// Draw Text And Text Box on The Frame
-        /// </summary>
-        /// <param name="frame"></param>
-        /// <param name="cls"></param>
-        /// <param name="prob"></param>
-        /// <param name="box"></param>
-        /// <returns></returns>
-        private OpenCvSharp.Rect DrawTextWithBox(Mat frame, OBJConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
-        {
-            string text = $"class: {cls.ToString()}  prob: {prob}";
-            var font = HersheyFonts.Italic;
-            double font_scale = 0.8;
-            int thickness = 2;
-
-            OpenCvSharp.Size text_size = Cv2.GetTextSize(text, font, font_scale, thickness, out int baseline);
-            var coord = new OpenCvSharp.Point(box.X - 1, box.Y - 1);
-
-            if (box.Y - text_size.Height < 0)
-            {
-                GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
-                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-                coord.Y = box.Y + text_size.Height + 1;
-            }
-            if (box.X + text_size.Width > 640)
-            {
-                GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
-                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-                coord.X = box.X - ((box.X + text_size.Width) - 640);
-            }
-
-            OpenCvSharp.Rect background_rect = new OpenCvSharp.Rect(
-                coord.X,
-                coord.Y - text_size.Height - baseline,
-                text_size.Width,
-                text_size.Height + 1 * baseline
-                );
-
-            background_rect = AvoidTextBoxIntersection(background_rect);
-            coord.X = background_rect.X;
-            coord.Y = background_rect.Y + text_size.Height;
-
-            Cv2.Rectangle(frame, background_rect, Scalar.Red, -1);
-            Cv2.PutText(frame, text, coord, font, font_scale, Scalar.White, thickness, LineTypes.AntiAlias);
-
-            GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
-            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");
-
-            return background_rect;
-        }
-
-        /// <summary>
-        /// Avoid Text Box Intersection with Previous Text Boxes
-        /// </summary>
-        /// <param name="text_box"></param>
-        /// <returns></returns>
-        private OpenCvSharp.Rect AvoidTextBoxIntersection(OpenCvSharp.Rect text_box)
-        {
-            if (textBoxs.Count == 0) return text_box;
-
-            bool is_intersect = false;
-
-            do
-            {
-                is_intersect = false;
-                foreach (var box in textBoxs)
-                {
-                    if (text_box.IntersectsWith(box))
-                    {
-                        GlobalLogManager.Instance.ConsoleLog("Text Box Intersection Found! Avoiding ...");
-                        GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Intersection Found! Avoiding ...");
-                        text_box.Y = box.Bottom + 3;
-                        is_intersect = true;
-                        break;
-                    }
-                }
-            } while (is_intersect);
-            return text_box;
-        }
-
         public override void DeactivateModule(EModuleType targetModule)
         {
             while (serialService.connectionState == EConnectionState.SendingImage)
@@ -560,7 +472,6 @@ namespace NPUDemoIntegrated.ViewModels
 
         public override void Dispose()
         {
-            timer.Dispose();
             webCamControl.FrameUpdate -= OnFrameUpdate;
             serialService.PointsReceived -= OnPointsReceived;
 

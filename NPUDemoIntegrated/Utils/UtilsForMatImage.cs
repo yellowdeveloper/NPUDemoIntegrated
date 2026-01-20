@@ -65,77 +65,77 @@ namespace NPUDemoIntegrated.Utils
         /// <param name="prob"></param>
         /// <param name="box"></param>
         /// <returns></returns>
-        //private OpenCvSharp.Rect DrawTextWithBox(Mat frame, OBJConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
-        //{
-        //    string text = $"class: {cls.ToString()}  prob: {prob}";
-        //    var font = HersheyFonts.Italic;
-        //    double font_scale = 0.8;
-        //    int thickness = 2;
+        public static Rect DrawTextWithBox <TClassArray> (Mat frame, Scalar rectColor, Scalar textColor, TClassArray cls, int prob, OpenCvSharp.Rect box, List<Rect>textBoxs)
+        {
+            string text = $"class: {cls.ToString()}  prob: {prob}";
+            var font = HersheyFonts.Italic;
+            double font_scale = 0.8;
+            int thickness = 2;
 
-        //    OpenCvSharp.Size text_size = Cv2.GetTextSize(text, font, font_scale, thickness, out int baseline);
-        //    var coord = new OpenCvSharp.Point(box.X - 1, box.Y - 1);
+            Size text_size = Cv2.GetTextSize(text, font, font_scale, thickness, out int baseline);
+            var coord = new Point(box.X - 1, box.Y - 1);
 
-        //    if (box.Y - text_size.Height < 0)
-        //    {
-        //        GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
-        //        GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-        //        coord.Y = box.Y + text_size.Height + 1;
-        //    }
-        //    if (box.X + text_size.Width > 640)
-        //    {
-        //        GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
-        //        GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
-        //        coord.X = box.X - ((box.X + text_size.Width) - 640);
-        //    }
+            if (box.Y - text_size.Height < 0)
+            {
+                GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
+                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
+                coord.Y = box.Y + text_size.Height + 1;
+            }
+            if (box.X + text_size.Width > 640)
+            {
+                GlobalLogManager.Instance.ConsoleLog("Text Box Out of Bound Found! Adjusting ...");
+                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Out of Bound Found! Adjusting ...");
+                coord.X = box.X - ((box.X + text_size.Width) - 640);
+            }
 
-        //    OpenCvSharp.Rect background_rect = new OpenCvSharp.Rect(
-        //        coord.X,
-        //        coord.Y - text_size.Height - baseline,
-        //        text_size.Width,
-        //        text_size.Height + 1 * baseline
-        //        );
+            Rect background_rect = new Rect(
+                coord.X,
+                coord.Y - text_size.Height - baseline,
+                text_size.Width,
+                text_size.Height + 1 * baseline
+                );
 
-        //    background_rect = AvoidTextBoxIntersection(background_rect);
-        //    coord.X = background_rect.X;
-        //    coord.Y = background_rect.Y + text_size.Height;
+            background_rect = AvoidTextBoxIntersection(background_rect, textBoxs);
+            coord.X = background_rect.X;
+            coord.Y = background_rect.Y + text_size.Height;
 
-        //    Cv2.Rectangle(frame, background_rect, Scalar.Red, -1);
-        //    Cv2.PutText(frame, text, coord, font, font_scale, Scalar.White, thickness, LineTypes.AntiAlias);
+            Cv2.Rectangle(frame, background_rect, rectColor, -1);
+            Cv2.PutText(frame, text, coord, font, font_scale, textColor, thickness, LineTypes.AntiAlias);
 
-        //    GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
-        //    GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");
+            GlobalLogManager.Instance.ConsoleLog("Text Box Drawing Completed");
+            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Drawing Completed");
 
-        //    return background_rect;
-        //}
+            return background_rect;
+        }
 
         /// <summary>
         /// Avoid Text Box Intersection with Previous Text Boxes
         /// </summary>
         /// <param name="text_box"></param>
         /// <returns></returns>
-        //private OpenCvSharp.Rect AvoidTextBoxIntersection(OpenCvSharp.Rect text_box)
-        //{
-        //    if (textBoxs.Count == 0) return text_box;
+        private static Rect AvoidTextBoxIntersection(Rect text_box, List<Rect> textBoxs)
+        {
+            if (textBoxs.Count == 0) return text_box;
 
-        //    bool is_intersect = false;
+            bool is_intersect = false;
 
-        //    do
-        //    {
-        //        is_intersect = false;
-        //        foreach (var box in textBoxs)
-        //        {
-        //            if (text_box.IntersectsWith(box))
-        //            {
-        //                GlobalLogManager.Instance.ConsoleLog("Text Box Intersection Found! Avoiding ...");
-        //                GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Intersection Found! Avoiding ...");
-        //                text_box.Y = box.Bottom + 3;
-        //                is_intersect = true;
-        //                break;
-        //            }
-        //        }
-        //    } while (is_intersect);
-        //    return text_box;
-        //}
+            do
+            {
+                is_intersect = false;
+                foreach (var box in textBoxs)
+                {
+                    if (text_box.IntersectsWith(box))
+                    {
+                        GlobalLogManager.Instance.ConsoleLog("Text Box Intersection Found! Avoiding ...");
+                        GlobalLogManager.Instance.AddLogToFile("DEBUG", "Text Box Intersection Found! Avoiding ...");
+                        text_box.Y = box.Bottom + 3;
+                        is_intersect = true;
+                        break;
+                    }
+                }
+            } while (is_intersect);
+            return text_box;
+        }
 
         public static unsafe void WriteBufferDirectly(Mat frame, WriteableBitmap tmp)
         {
