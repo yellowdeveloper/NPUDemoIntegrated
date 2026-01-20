@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 
 namespace NPUDemoIntegrated.Models
 {
+    /// <summary>
+    /// SerialService Base Class: All SerialService inherit from this
+    /// </summary>
+    /// <typeparam name="TSerialConfig"></typeparam>
     abstract class BaseSerialService<TSerialConfig> where TSerialConfig : SerialConfig
     {
         protected TSerialConfig _serialConfig;
@@ -200,9 +204,6 @@ namespace NPUDemoIntegrated.Models
         protected void SetCS_Low(FTDI ftdi)
         {
             uint bytesWritten = 0;
-            // 0x80: ADBUS Setup Command
-            // 0x00: Value (All pins Low, ADBUS3(=CS) to Low)
-            // 0xFB: Direction (SK, DO, CS = Output(1), DI = Input(0)) -> 1111 1011
             byte[] cmd = { 0x80, 0x00, 0xFB };
             ftdi.Write(cmd, cmd.Length, ref bytesWritten);
         }
@@ -211,7 +212,6 @@ namespace NPUDemoIntegrated.Models
         protected void SetCS_High(FTDI ftdi)
         {
             uint bytesWritten = 0;
-            // 0x08: Value (ADBUS3(CS) High, 나머지 Low) -> 0000 1000
             byte[] cmd = { 0x80, 0x08, 0xFB };
             ftdi.Write(cmd, cmd.Length, ref bytesWritten);
         }
@@ -242,16 +242,14 @@ namespace NPUDemoIntegrated.Models
         protected virtual void SerialDisconnect(SerialPort sp)
         {
             if ((sp != null && sp.IsOpen))
-            { // && (sp_debug != null && sp_debug.IsOpen)
+            {
                 try
                 {
-                    sp.DataReceived -= OnSerialReceived; // test with tx change to rx later
-                    //sp_debug.DataReceived -= OnSerialReceived_Debug;
+                    sp.DataReceived -= OnSerialReceived;
 
                     System.Threading.Thread.Sleep(20);
 
                     sp.Close();
-                    //sp_debug.Close();
                 }
                 catch (Exception ex)
                 {

@@ -3,12 +3,10 @@ using NPUDemoIntegrated.Models;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Utils;
 using OpenCvSharp;
-using OpenCvSharp.Dnn;
 using OpenCvSharp.WpfExtensions;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.IO.Ports;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -18,9 +16,6 @@ namespace NPUDemoIntegrated.ViewModels
 {
     class IRViewModel : BaseViewModel
     {
-        public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
-        public override string subTitle => "Real-time Infrared Image input and on-device object detection inference";
-
         private readonly IRSerialService _serialService;
         public IRConfig irConfig { get; }
         public SerialConfig serialConfig { get; }
@@ -28,6 +23,10 @@ namespace NPUDemoIntegrated.ViewModels
         private readonly Timer _timer;
         private DispatcherTimer _measureTimer;
         private readonly Stopwatch _stopwatch = new Stopwatch();
+
+        private readonly object _frame_lock = new object();
+        private readonly object _bbox_lock = new object();
+        private readonly object _send_lock = new object();
 
         public override ICommand ConnectCommand { get; }
         public override ICommand DisconnectCommand { get; }
@@ -41,28 +40,126 @@ namespace NPUDemoIntegrated.ViewModels
         private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
         private List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
         public float[] pixelArray => _serialService.Data.pixelTempArray;
-        private float[] _processedBuffer;
         public float sensorTemp => _serialService.Data.sensorTemp;
+        private float[] _processedBuffer;
+        
         public WriteableBitmap colorBitmap { get; private set; }
+        public BitmapSource _bitmapShow;
         public Mat colorMat;
         public Mat colorMatShow;
-        public BitmapSource _bitmapShow;
-
+        
         private double _rtFps = 0.0;
         private double _fps = 0.0;
         private float _volt = 0.0f;
         private float _amp = 0.0f;
         private float _pixelMax;
         private string _modColor;
-
         private bool _isSendAuto = false;
         private bool _isInterpolate = false;
+
         private bool _isSending = false;
         private int _tryCount = 0;
 
-        private readonly object _frame_lock = new object();
-        private readonly object _bbox_lock = new object();
-        private readonly object _send_lock = new object();
+        public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
+        public override string subTitle => "Real-time Infrared Image input and on-device object detection inference";
+
+        public string cn_dn
+        {
+            get
+            {
+                if (_serialService.connectionState == EConnectionState.Disconnected)
+                {
+                    return "White"; // Disonnected
+                }
+                else
+                {
+                    return "Red";   // Connected
+                }
+            }
+        }
+        public bool isSendAuto
+        {
+            get => _isSendAuto;
+            set
+            {
+                _isSendAuto = value;
+                OnPropertyChanged();
+
+                if (_isSendAuto)
+                {
+                    _timer.Change(0, 500);
+                    GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
+                    GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
+                }
+                else
+                {
+                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
+            }
+        }
+
+        public double fps
+        {
+            get { return _fps; }
+            set
+            {
+                _fps = value;
+                OnPropertyChanged();
+            }
+        }
+        public double rtFps
+        {
+            get { return _rtFps; }
+            set
+            {
+                _rtFps = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool isInterpolate
+        {
+            get { return _isInterpolate; }
+            set
+            {
+                _isInterpolate = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public float volt
+        {
+            get => _volt;
+            set { _volt = value; OnPropertyChanged(); }
+        }
+
+        public float amp
+        {
+            get => _amp;
+            set { _amp = value; OnPropertyChanged(); }
+        }
+
+        public BitmapSource bitmapShow
+        {
+            get => _bitmapShow;
+            set { _bitmapShow = value; OnPropertyChanged(); }
+        }
+        public ICommand ModuleCommand
+        {
+            get => _moduleCommand;
+            set { _moduleCommand = value; OnPropertyChanged(); }
+        }
+        public float pixelMax
+        {
+            get { return _pixelMax; }
+            set { _pixelMax = value; OnPropertyChanged(); }
+        }
+
+        public string modColor
+        {
+            get { return _modColor; }
+            set { _modColor = value; OnPropertyChanged(); }
+        }
 
         public IRViewModel(SerialConfig _serialConfig, IRConfig _irConfig, IRSerialService service)
         {
@@ -277,7 +374,7 @@ namespace NPUDemoIntegrated.ViewModels
             Mat resized = new Mat();
             lock (_bbox_lock)
             {
-                resized = Resize(frame_to_draw, 512);
+                resized = UtilsForMatImage.Resize(frame_to_draw, 512);
 
                 foreach (var box in _bbox)
                 {
@@ -473,19 +570,6 @@ namespace NPUDemoIntegrated.ViewModels
             return (uint)((255 << 24) | (r << 16) | (g << 8) | b);
         }
 
-        public Mat Resize(Mat src, int size)
-        {
-            GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
-            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
-
-            OpenCvSharp.Size newSize = new OpenCvSharp.Size(size, size);
-
-            Mat resizedImage = new Mat();
-            Cv2.Resize(src, resizedImage, newSize, 0, 0, InterpolationFlags.Linear);
-
-            return resizedImage;
-        }
-
         private void ResizeBitmap(float[] array, int resolution)
         {
             int arrSize = resolution * resolution;
@@ -551,104 +635,6 @@ namespace NPUDemoIntegrated.ViewModels
             //return tmpArray;
         }
 
-        public string cn_dn
-        {
-            get
-            {
-                if (_serialService.connectionState == EConnectionState.Disconnected)
-                {
-                    return "White"; // Disonnected
-                }
-                else
-                {
-                    return "Red";   // Connected
-                }
-            }
-        }
-        public bool isSendAuto
-        {
-            get => _isSendAuto;
-            set
-            {
-                _isSendAuto = value;
-                OnPropertyChanged();
-
-                if (_isSendAuto)
-                {
-                    _timer.Change(0, 500);
-                    GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
-                    GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
-                }
-                else
-                {
-                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
-                }
-            }
-        }
-
-        public double fps
-        {
-            get { return _fps; }
-            set
-            {
-                _fps = value;
-                OnPropertyChanged();
-            }
-        }
-        public double rtFps
-        {
-            get { return _rtFps; }
-            set
-            {
-                _rtFps = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool isInterpolate
-        {
-            get { return _isInterpolate; }
-            set
-            {
-                _isInterpolate = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public float volt
-        {
-            get => _volt;
-            set { _volt = value; OnPropertyChanged(); }
-        }
-
-        public float amp
-        {
-            get => _amp;
-            set { _amp = value; OnPropertyChanged(); }
-        }
-
-        public BitmapSource bitmapShow
-        {
-            get => _bitmapShow;
-            set { _bitmapShow = value; OnPropertyChanged(); }
-        }
-        public ICommand ModuleCommand
-        {
-            get => _moduleCommand;
-            set { _moduleCommand = value; OnPropertyChanged(); }
-        }
-        public float pixelMax
-        {
-            get { return _pixelMax; }
-            set { _pixelMax = value; OnPropertyChanged(); }
-        }
-
-        public string modColor
-        {
-            get { return _modColor; }
-            set { _modColor = value; OnPropertyChanged(); }
-        }
-
         public override void DeactivateModule(EModuleType targetModule)
         {
             while (_serialService.connectionState == EConnectionState.SendingImage)
@@ -676,7 +662,7 @@ namespace NPUDemoIntegrated.ViewModels
         private void FindMaxTempInFace(IRConfig.EClassArray cls, OpenCvSharp.Rect box)
         {
             double downsizeRatio = 32.0f / irConfig.resolution;
-
+            
             if (cls == IRConfig.EClassArray.face)
             {
                 int orgTLX = box.X;
@@ -707,7 +693,6 @@ namespace NPUDemoIntegrated.ViewModels
                     }
                 }
                 pixelMax = maxTemp;
-                GlobalLogManager.Instance.ConsoleLog($"MAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAXMAX{pixelMax}");
             }
             // else pixelMax = 0.0f;
         }

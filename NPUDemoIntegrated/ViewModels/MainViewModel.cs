@@ -54,7 +54,7 @@ namespace NPUDemoIntegrated.ViewModels
 
             // Inject Service & Config to ViewModel
             OBJVM = new OBJViewModel(serialConfig, objConfig, objService);
-            IRVM = new IRViewModel(serialConfig, irConfig, irService);
+            IRVM  = new IRViewModel(serialConfig, irConfig, irService);
 
             // --- Init ViewModel Status ---
             currentContext = OBJVM;

@@ -10,6 +10,9 @@ using System.Windows.Input;
 
 namespace NPUDemoIntegrated.ViewModels
 {
+    /// <summary>
+    /// ViewModel Base Class: All ViewModels inherit from this
+    /// </summary>
     abstract class BaseViewModel: Notifier, IDisposable
     {
         public abstract string title { get; }

@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -19,67 +20,197 @@ using System.Xml.Linq;
 
 namespace NPUDemoIntegrated.ViewModels
 {
-    class OBJViewModel: BaseViewModel
+    /// <summary>
+    /// OBJ View Model Class: inherits from BaseViewModel
+    /// </summary>
+    class OBJViewModel : BaseViewModel
     {
-        private readonly WebCamControl _web_cam_control;
-        private readonly OBJSerialService _serialService;
-        private readonly Timer _timer;
-        private readonly Stopwatch _stopwatch = new Stopwatch();
+        /// <summary>
+        /// readonly Variables for Module Control
+        /// </summary>
+        private readonly WebCamControl webCamControl;
+        private readonly OBJSerialService serialService;
+        private readonly Timer timer;
+        private readonly Stopwatch stopwatch = new Stopwatch();
 
-        public OBJConfig objConfig { get; }
-        public SerialConfig serialConfig { get; }
+        /// <summary>
+        /// Lock Objects for Thread Safety
+        /// </summary>
+        private readonly object frameLock = new object();
+        private readonly object bboxLock = new object();
+        private readonly object sendLock = new object();
 
-        private BitmapSource _bitmap;
-        private BitmapSource _bitmapSent;
+        /// <summary>
+        /// Image Variables for Update Images
+        /// </summary>
         private WriteableBitmap bitmapTmp;
         private WriteableBitmap bitmapSentTmp;
-
         private Mat frameToSend;
         private Mat frameToDraw;
         private Mat tmpMat = new Mat();
+        private BitmapSource _bitmap;
+        private BitmapSource _bitmapSent;
 
-        private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
-        private List<OpenCvSharp.Rect> text_boxs = new List<OpenCvSharp.Rect>();
+        /// <summary>
+        /// List Variables for Drawing Inference Results
+        /// </summary>
+        private List<OpenCvSharp.Rect> bbox = new List<OpenCvSharp.Rect>();
+        private List<OpenCvSharp.Rect> textBoxs = new List<OpenCvSharp.Rect>();
 
-        private bool _is_sent_auto = false;
-        private bool _is_sending = false;
-        private int _try_count = 0;
+        /// <summary>
+        /// UI Binded Properties
+        /// </summary>
+        private bool _isSendAuto = false;
         private double _fps = 0.0;
-
-        //for test
-        private bool _test_flag = false;
-
-        private readonly object _frame_lock = new object();
-        private readonly object _bbox_lock = new object();
-        private readonly object _send_lock = new object();
-
         private float _volt = 0.0f;
         private float _amp = 0.0f;
 
+        /// <summary>
+        /// Internal Variables for Communication Control
+        /// </summary>
+        private bool isSending = false;
+        private int tryCount = 0;
+
+        // just for test
+        private bool testFlag = false;
+
+        /// <summary>
+        /// config objects
+        /// </summary>
+        public OBJConfig objConfig { get; }
+        public SerialConfig serialConfig { get; }
+
+        /// <summary>
+        /// Button Commands
+        /// </summary>
         public override ICommand ConnectCommand { get; }
         public override ICommand DisconnectCommand { get; }
         public ICommand SendCommand { get; }
 
+        /// <summary>
+        /// Title Bindings for Header View
+        /// </summary>
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device object detection inference";
 
+        /// <summary>
+        /// public Property for Display Image Binding (Real-Time)
+        /// </summary>
+        public BitmapSource bitmapShow
+        {
+            get => _bitmap;
+            set { _bitmap = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// public Property for Display Image Binding (inferenced)
+        /// </summary>
+        public BitmapSource bitmapSent
+        {
+            get => _bitmapSent;
+            set { _bitmapSent = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Color Property for Connection Status Indicator Binding
+        /// </summary>
+        public string cn_dn
+        {
+            get
+            {
+                if (serialService.connectionState == EConnectionState.Disconnected)
+                {
+                    return "White";    //Disonnected
+                }
+                else
+                {
+                    return "Red"; //Connected
+                }
+            }
+        }
+
+        /// <summary>
+        /// Frame Rate Property Binding
+        /// </summary>
+        public double fps
+        {
+            get => _fps;
+            set { _fps = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Auto Send Option Property Binding
+        /// </summary>
+        public bool isSendAuto
+        {
+            get => _isSendAuto;
+            set
+            {
+                _isSendAuto = value;
+                OnPropertyChanged();
+
+                if (_isSendAuto)
+                {
+                    timer.Change(0, 10);
+                    GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
+                    GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
+                }
+                else
+                {
+                    timer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Power Consumption Property Binding (Watt)
+        /// </summary>
+        public float volt
+        {
+            get => _volt;
+            set { _volt = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Power Consumption Property Binding (Ampere)
+        /// </summary>
+        public float amp
+        {
+            get => _amp;
+            set { _amp = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// ViewModel Constructor for Obect Detection Module
+        /// </summary>
+        /// <remarks>
+        /// Create Instances, Commands, Event Handlers and set Timer
+        /// </remarks>
+        /// <param name="_serialConfig">
+        /// for Dependency Injection of Config(Serial) Object
+        /// </param>
+        /// <param name="_objConfig">
+        /// for Dependency Injection of Config(Object Detection Model) Object
+        /// </param>
+        /// <param name="service">
+        /// for Dependency Injection of SerialService Object
+        /// </param>
         public OBJViewModel(SerialConfig _serialConfig, OBJConfig _objConfig, OBJSerialService service)
         {
-            _serialService = service;
+            serialService = service;
             objConfig = _objConfig;
             serialConfig = _serialConfig;
-            
+
             //_viewModelId = DateTime.Now.ToString("\nInstance Creadted Time == HH:mm:ss.fff\n");
-            //Debug.Write($"{_viewModelId}");
 
-            _web_cam_control = new WebCamControl();
+            webCamControl = new WebCamControl();
 
-            _web_cam_control.FrameUpdate += OnFrameUpdate;
-            _web_cam_control.WebCamInitialize();
+            webCamControl.FrameUpdate += OnFrameUpdate;
+            webCamControl.WebCamInitialize();
 
-            _serialService.PointsReceived += OnPointsReceived;
+            serialService.PointsReceived += OnPointsReceived;
 
-            _serialService._sharedStatus.PropertyChanged += (s, e) =>
+            serialService._sharedStatus.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(SharedStatus.connectionState))
                 {
@@ -88,80 +219,85 @@ namespace NPUDemoIntegrated.ViewModels
             };
 
             ConnectCommand = new RelayCommand(param => {
-                if (_serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
+                if (serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
                 if (is_menu_open) is_menu_open = !is_menu_open;
-                //Debug.Write("\nConnect button clicked");
             });
 
             DisconnectCommand = new RelayCommand(param => {
-                Task.Run(() => _serialService.Disconnect());
+                Task.Run(() => serialService.Disconnect());
                 ButtonCommand = ConnectCommand;
                 if (is_menu_open) is_menu_open = !is_menu_open;
-                //Debug.Write("\nDisconnect button clicked");
             });
 
             ButtonCommand = ConnectCommand;
 
             SendCommand = new RelayCommand(async param => {
-                is_send_auto = false;
+                isSendAuto = false;
                 await SendFramePeriodically();
                 if (is_menu_open) is_menu_open = !is_menu_open;
                 // GlobalLogManager.Instance.ConsoleLog("Manual Send Completed");
             });
 
-            _timer = new Timer(async (_) => await SendFramePeriodically(), null, Timeout.Infinite, Timeout.Infinite);
+            timer = new Timer(async (_) => await SendFramePeriodically(), null, Timeout.Infinite, Timeout.Infinite);
         }
 
+        /// <summary>
+        /// Method for Sending Frame Periodically
+        /// </summary>
+        /// <remarks>
+        /// It Copies current frame (one for sending, one for drawing) under lock and pass as an argument to SerialCommunication Method(Declared in SerialService)
+        /// </remarks>
+        /// <returns></returns>
         private async Task SendFramePeriodically()
         {
-            if (!_is_sending && _try_count >= 20 && _serialService.connectionState == EConnectionState.WaitingForInference)
+            if (!isSending && tryCount >= 20 && serialService.connectionState == EConnectionState.WaitingForInference)
             {
-                _serialService.connectionState = EConnectionState.Connected;
-                GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
-                GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {_serialService.connectionState}");
+                serialService.connectionState = EConnectionState.Connected;
+                GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {serialService.connectionState}");
+                GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {serialService.connectionState}");
             }
-            if (!_is_sending && _serialService.connectionState == EConnectionState.Connected)
+            if (!isSending && serialService.connectionState == EConnectionState.Connected)
             {
-                _is_sending = true;
+                isSending = true;
 
                 GlobalLogManager.Instance.ConsoleLog($"OK.. Image Sending Method Called ... ");
                 GlobalLogManager.Instance.AddLogToFile("DEBUG", $"Image Sending Method Called ... ");
 
-                _try_count = 0;
+                tryCount = 0;
 
                 //Debug.Write("\nMat Variable set");
-                lock (_frame_lock)
+                lock (frameLock)
                 {
                     //Debug.Write("\nFrameLock Called");
-                    if (frameToSend == null) _test_flag = true;
+                    if (frameToSend == null) testFlag = true;
                     else { frameToSend.CopyTo(tmpMat); }
                 }
 
-                if (_test_flag)
+                if (testFlag)
                 {
                     try
                     {
                         GlobalLogManager.Instance.ConsoleLog($"WARN.. frame empty, sending 0 ~ 255");
-                        await _serialService.SerialCommunication(new Mat());
+                        await serialService.SerialCommunication(new Mat());
                         return;
                     }
                     finally
                     {
-                        _is_sending = false;
+                        isSending = false;
                     }
                 }
 
                 Mat resized;
                 if (serialConfig.imgMode == EImageMode.RESIZE)
                 {
-                    resized = Resize(tmpMat);
+                    resized = UtilsForMatImage.Resize(tmpMat, objConfig.imgSize == EImageSize.S320 ? 320 : 384);
                 }
                 else
                 {
-                    resized = Pad(tmpMat);
+                    resized = UtilsForMatImage.Pad(tmpMat, objConfig.imgSize == EImageSize.S320 ? 320 : 384);
                 }
 
-                lock (_send_lock)
+                lock (sendLock)
                 {
                     //Debug.Write("\nSendLock Called");
                     if (frameToDraw != null && !frameToDraw.IsDisposed)
@@ -177,39 +313,44 @@ namespace NPUDemoIntegrated.ViewModels
                 try
                 {
                     Debug.Write("\nSerialCommunication Called");
-                    _stopwatch.Restart();
-                    await _serialService.SerialCommunication(resized);
+                    stopwatch.Restart();
+                    await serialService.SerialCommunication(resized);
                 }
                 finally
                 {
-                    _is_sending = false;
+                    isSending = false;
                     resized.Dispose();
                 }
             }
-            else if (_serialService.connectionState == EConnectionState.WaitingForInference && _is_sent_auto)
+            else if (serialService.connectionState == EConnectionState.WaitingForInference && isSendAuto)
             {
                 //GlobalLogManager.Instance.ConsoleLog($"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}"  );
                 //GlobalLogManager.Instance.AddLogToFile("ERROR", $"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}");
-                _try_count++;
+                tryCount++;
             }
         }
 
+        /// <summary>
+        /// Event: On FrameUpdate from WebCamControl
+        /// </summary>
+        /// <remarks>
+        /// updates in 33ms interval, Copies current Frame for Real-Tiem Display and Processing SendFramePeriodically Method
+        /// </remarks>
+        /// <param name="frame"></param>
         private void OnFrameUpdate(Mat frame)
         {
             try
             {
-                //BitmapSource bitmap_tmp = frame.ToBitmapSource();
-                //bitmap_tmp.Freeze();
                 Application.Current.Dispatcher.Invoke(new Action(() => {
                     if (bitmapTmp == null || bitmapTmp.PixelWidth != frame.Width || bitmapTmp.PixelHeight != frame.Height)
                     {
                         bitmapTmp = new WriteableBitmap(frame.Width, frame.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
                         bitmapShow = bitmapTmp;
                     }
-                    WriteBufferDirectly(frame, bitmapTmp);
+                    UtilsForMatImage.WriteBufferDirectly(frame, bitmapTmp);
                 }));
 
-                lock (_frame_lock)
+                lock (frameLock)
                 {
                     if (frameToSend != null && !frameToSend.IsDisposed)
                     {
@@ -231,7 +372,28 @@ namespace NPUDemoIntegrated.ViewModels
                 frame.Dispose();
             }
         }
-
+        /// <summary>
+        /// Event: On PointsReceived from SerialService
+        /// </summary>
+        /// <remarks>
+        /// When SerialService raises PointsReceived Event after getting Inference Results from NPU
+        /// it draws Bboxes and Texts on the current frame and updates the Display Image
+        /// </remarks>
+        /// <param name="volt">
+        /// Power Comsumption Value Received from NPU (Watt)
+        /// </param>
+        /// <param name="amp">
+        /// Power Comsumption Value Received from NPU (ampere)
+        /// </param>
+        /// <param name="b_box">
+        /// Bbox Value Received from NPU 
+        /// </param>
+        /// <param name="cls">
+        /// Class Value Received from NPU
+        /// </param>
+        /// <param name="prob">
+        /// Probability Value Received from NPU
+        /// </param>
         private void OnPointsReceived(float volt, float amp, List<OpenCvSharp.Rect> b_box, List<OBJConfig.EClassArray> cls, List<int> prob)
         {
             string save_path = Path.Combine(GlobalConfigManager.Instance.GetImageFolderPath(), GlobalConfigManager.Instance.GetNowImageFileName());
@@ -240,26 +402,26 @@ namespace NPUDemoIntegrated.ViewModels
 
             int cnt = 0;
 
-            lock (_bbox_lock)
+            lock (bboxLock)
             {
-                _bbox = b_box;
+                bbox = b_box;
             }
 
             Mat frame_to_draw;
-            lock (_send_lock)
+            lock (sendLock)
             {
                 if (frameToDraw == null || frameToDraw.Empty()) return;
                 frame_to_draw = frameToDraw.Clone();
             }
 
-            text_boxs.Clear();
-            lock (_bbox_lock)
+            textBoxs.Clear();
+            lock (bboxLock)
             {
-                foreach (var box in _bbox)
+                foreach (var box in bbox)
                 {
                     Cv2.Rectangle(frame_to_draw, box, Scalar.Red, 2);
 
-                    text_boxs.Add(DrawTextWithBox(frame_to_draw, cls[cnt], prob[cnt], box));
+                    textBoxs.Add(DrawTextWithBox(frame_to_draw, cls[cnt], prob[cnt], box));
                     cnt++;
                 }
                 // Cv2.ImWrite(save_path, frame_to_draw);
@@ -268,11 +430,8 @@ namespace NPUDemoIntegrated.ViewModels
             // GlobalLogManager.Instance.ConsoleLog("OK.. Bbox drawing Completed ... Check Image\n");
             GlobalLogManager.Instance.AddLogToFile("DEBUG", "Bbox drawing Completed ... Check Image\n");
 
-            // BitmapSource bitmap_tmp = frame_to_draw.ToBitmapSource();
-            // bitmap_tmp.Freeze();
-
-            _stopwatch.Stop();
-            var elapsed = _stopwatch.Elapsed.TotalSeconds;
+            stopwatch.Stop();
+            var elapsed = stopwatch.Elapsed.TotalSeconds;
 
             // GlobalLogManager.Instance.ConsoleLog($"volt & amp: {amp}, {volt}");
 
@@ -282,7 +441,7 @@ namespace NPUDemoIntegrated.ViewModels
                     bitmapSentTmp = new WriteableBitmap(frame_to_draw.Width, frame_to_draw.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
                     bitmapSent = bitmapSentTmp;
                 }
-                WriteBufferDirectly(frame_to_draw, bitmapSentTmp);
+                UtilsForMatImage.WriteBufferDirectly(frame_to_draw, bitmapSentTmp);
 
                 fps = 1 / elapsed;
 
@@ -293,10 +452,16 @@ namespace NPUDemoIntegrated.ViewModels
             });
 
             // GlobalLogManager.Instance.ConsoleLog($"Frame Rate:: {fps}");
-
-            // frame_to_draw.Dispose();
         }
 
+        /// <summary>
+        /// Draw Text And Text Box on The Frame
+        /// </summary>
+        /// <param name="frame"></param>
+        /// <param name="cls"></param>
+        /// <param name="prob"></param>
+        /// <param name="box"></param>
+        /// <returns></returns>
         private OpenCvSharp.Rect DrawTextWithBox(Mat frame, OBJConfig.EClassArray cls, int prob, OpenCvSharp.Rect box)
         {
             string text = $"class: {cls.ToString()}  prob: {prob}";
@@ -340,16 +505,21 @@ namespace NPUDemoIntegrated.ViewModels
             return background_rect;
         }
 
+        /// <summary>
+        /// Avoid Text Box Intersection with Previous Text Boxes
+        /// </summary>
+        /// <param name="text_box"></param>
+        /// <returns></returns>
         private OpenCvSharp.Rect AvoidTextBoxIntersection(OpenCvSharp.Rect text_box)
         {
-            if (text_boxs.Count == 0) return text_box;
+            if (textBoxs.Count == 0) return text_box;
 
             bool is_intersect = false;
 
             do
             {
                 is_intersect = false;
-                foreach (var box in text_boxs)
+                foreach (var box in textBoxs)
                 {
                     if (text_box.IntersectsWith(box))
                     {
@@ -364,200 +534,37 @@ namespace NPUDemoIntegrated.ViewModels
             return text_box;
         }
 
-        // resize function added
-        public Mat Resize(Mat src)
-        {
-            GlobalLogManager.Instance.ConsoleLog("Resizing bbox Image ...");
-            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Resizing Image ...");
-            int size = objConfig.imgSize == EImageSize.S320 ? 320 : 384;
-            OpenCvSharp.Size newSize = new OpenCvSharp.Size(size, size);
-
-            Mat resizedImage = new Mat();
-            Cv2.Resize(src, resizedImage, newSize, 0, 0, InterpolationFlags.Linear);
-
-            return resizedImage;
-        }
-        // padding function added
-        public Mat Pad(Mat src)
-        {
-            GlobalLogManager.Instance.ConsoleLog("Padding bbox Image ...");
-            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Padding bbox Image ...");
-            int size = objConfig.imgSize == EImageSize.S320 ? 320 : 384;
-            Scalar color = new Scalar(0, 0, 0); // Black padding
-
-            double w = src.Width;
-            double h = src.Height;
-
-            double ratio = w > h ? size / w : size / h;
-
-            int w_resized = (int)(w * ratio);
-            int h_resized = (int)(h * ratio);
-
-            using (Mat resizedImage = new Mat())
-            {
-                Cv2.Resize(src, resizedImage, new OpenCvSharp.Size(w_resized, h_resized), 0, 0, InterpolationFlags.Area);
-
-                Mat canvas = new Mat(size, size, src.Type(), color);
-
-                int top = (size - h_resized) / 2;
-                int left = (size - w_resized) / 2;
-
-                OpenCvSharp.Rect roi = new OpenCvSharp.Rect(left, top, w_resized, h_resized);
-                resizedImage.CopyTo(canvas[roi]);
-
-                return canvas;
-            }
-        }
-
-        private unsafe void WriteBufferDirectly(Mat frame, WriteableBitmap tmp)
-        {
-            tmp.Lock();
-
-            try
-            {
-                IntPtr framePtr = frame.Data;
-                IntPtr tmpPtr = tmp.BackBuffer;
-
-                int frameStride = (int)frame.Step();
-                int tmpStride = tmp.BackBufferStride;
-                int height = frame.Height;
-
-                int totalLength = frame.Width * frame.ElemSize();
-
-                if (frameStride == tmpStride)
-                {
-                    long totalBytes = (long)frameStride * height;
-                    Buffer.MemoryCopy((void*)framePtr, (void*)tmpPtr, totalBytes, totalBytes);
-                }
-                else
-                {
-                    byte* pSrc = (byte*)framePtr;
-                    byte* pDst = (byte*)tmpPtr;
-
-                    for (int row = 0; row < height; row++)
-                    {
-                        Buffer.MemoryCopy(pSrc, pDst, tmpStride, totalLength);
-                        pSrc += frameStride;
-                        pDst += tmpStride;
-                    }
-                }
-                tmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, tmp.PixelWidth, tmp.PixelHeight));
-            }
-
-            finally
-            {
-                tmp.Unlock();
-            }
-        }
-
-        public BitmapSource bitmapShow
-        {
-            get => _bitmap;
-            set { _bitmap = value; OnPropertyChanged(); }
-        }
-
-        public BitmapSource bitmapSent
-        {
-            get => _bitmapSent;
-            set { _bitmapSent = value; OnPropertyChanged(); }
-        }
-
-        public string cn_dn
-        {
-            get
-            {
-                if (_serialService.connectionState == EConnectionState.Disconnected)
-                {
-                    return "White";    //Disonnected
-                }
-                else
-                {
-                    return "Red"; //Connected
-                }
-            }
-        }
-        public double fps
-        {
-            get => _fps;
-            set { _fps = value; OnPropertyChanged(); }
-        }
-
-        public bool is_send_auto
-        {
-            get => _is_sent_auto;
-            set
-            {
-                _is_sent_auto = value;
-                OnPropertyChanged();
-
-                if (_is_sent_auto)
-                {
-                    _timer.Change(0, 10);
-                    GlobalLogManager.Instance.ConsoleLog("Auto Send Enabled");
-                    GlobalLogManager.Instance.AddLogToFile("DEBUG", "Auto Send Enabled");
-                }
-                else
-                {
-                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
-                }
-            }
-        }
-
-        public float volt
-        {
-            get => _volt;
-            set { _volt = value; OnPropertyChanged(); }
-        }
-
-        public float amp
-        {
-            get => _amp;
-            set { _amp = value; OnPropertyChanged(); }
-        }
-
         public override void DeactivateModule(EModuleType targetModule)
         {
-            while (_serialService.connectionState == EConnectionState.SendingImage)
+            while (serialService.connectionState == EConnectionState.SendingImage)
             {
-                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState} wait until sending is finished");
+                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{serialService.connectionState} wait until sending is finished");
                 Thread.Sleep(20);
             }
-            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState}");
+            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{serialService.connectionState}");
 
-            is_send_auto = false;
+            isSendAuto = false;
 
             Thread.Sleep(20);
 
-            _serialService.SendModuleChangeNotice(targetModule);
-            _serialService.SerialReceiveEventDispose();
+            serialService.SendModuleChangeNotice(targetModule);
+            serialService.SerialReceiveEventDispose();
 
             Thread.Sleep(20);
         }
 
         public override void ActivateModule()
         {
-            _serialService.SerialReceiveEventSubscribe();
-        }
-
-        public void checkAndCopyMat()
-        {
-            if (frameToDraw != null && !frameToDraw.IsDisposed)
-            {
-                tmpMat.CopyTo(frameToDraw);
-            }
-            else
-            {
-                frameToDraw = tmpMat.Clone();
-            }
+            serialService.SerialReceiveEventSubscribe();
         }
 
         public override void Dispose()
         {
-            _timer.Dispose();
-            _web_cam_control.FrameUpdate -= OnFrameUpdate;
-            _serialService.PointsReceived -= OnPointsReceived;
-            
-            _web_cam_control.Dispose();
+            timer.Dispose();
+            webCamControl.FrameUpdate -= OnFrameUpdate;
+            serialService.PointsReceived -= OnPointsReceived;
+
+            webCamControl.Dispose();
             if (frameToDraw != null) frameToDraw.Dispose();
             if (frameToSend != null) frameToSend.Dispose();
             if (tmpMat != null) tmpMat.Dispose();

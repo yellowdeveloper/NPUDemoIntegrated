@@ -24,7 +24,7 @@ namespace NPUDemoIntegrated.GlobalManagers
         private string _configFileName = "init_config.ini";
 
         private string _imageFolderPath = @"Image\";
-        private string _imageFileName = $"Processed.png";
+        private string _imageFileName = $"Processed.png";   
 
         public string GetConfigFolderPath()
         {

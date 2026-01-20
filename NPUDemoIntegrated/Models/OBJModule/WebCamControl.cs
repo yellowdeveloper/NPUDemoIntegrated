@@ -47,7 +47,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                         {
                             _access_try++;
                             Console.WriteLine("capture failed. no frame to save :: waiting for frame :: " + _access_try.ToString());
-                            GlobalManagers.GlobalLogManager.Instance.AddLogToFile("DEBUG", "capture failed. no frame to save :: waiting for frame :: " + _access_try.ToString());
+                            GlobalLogManager.Instance.AddLogToFile("DEBUG", "capture failed. no frame to save :: waiting for frame :: " + _access_try.ToString());
                             await Task.Delay(500);
                             continue;
                         }
@@ -57,7 +57,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
                         while (_cts.IsCancellationRequested)
                         {
                             GlobalLogManager.Instance.ConsoleLog("WARN.. Try to Initialize WebCam again ... ");
-                            GlobalManagers.GlobalLogManager.Instance.AddLogToFile("DEBUG", "Try to Initialize WebCam again ... ");
+                            GlobalLogManager.Instance.AddLogToFile("DEBUG", "Try to Initialize WebCam again ... ");
                             WebCamInitialize();
                             await Task.Delay(500);
                         }
