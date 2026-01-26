@@ -264,7 +264,7 @@ namespace NPUDemoIntegrated.ViewModels
             {
                 Task.Run(() => _serialService.ModuleDisconnect());
                 ModuleCommand = ModuleConnectCommand;
-                modColor = "Black";
+                modColor = "White";
                 if (is_menu_open) is_menu_open = !is_menu_open;
             });
 
