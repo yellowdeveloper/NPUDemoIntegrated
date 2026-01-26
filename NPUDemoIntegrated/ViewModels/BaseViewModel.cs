@@ -52,9 +52,18 @@ namespace NPUDemoIntegrated.ViewModels
                 GlobalConfigManager.Instance.LoadConfig();
             });
         }
-
+        /// <summary>
+        /// Deactivate current module and send notice of "targetModule" to NPU
+        /// </summary>
+        /// <param name="targetModule"></param>
         public abstract void DeactivateModule(EModuleType targetModule);
+        /// <summary>
+        /// Activates the module
+        /// </summary>
         public abstract void ActivateModule();
+        /// <summary>
+        /// Dispose all resoureces before shut down
+        /// </summary>
         public abstract void Dispose();
     }
 }

@@ -300,7 +300,7 @@ namespace NPUDemoIntegrated.Models.IRModule
                 try
                 {
                     spModule.DataReceived -= OnSerialReceivedModule;
-                    System.Threading.Thread.Sleep(20);
+                    Thread.Sleep(20);
                     spModule.Close();
 
                     GlobalLogManager.Instance.ConsoleLog($"IR Module Disconnected");

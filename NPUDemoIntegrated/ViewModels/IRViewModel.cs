@@ -252,7 +252,11 @@ namespace NPUDemoIntegrated.ViewModels
                     ModuleCommand = ModuleDisconnectCommand;
                     modColor = "Red";
                 }
-                
+                else
+                {
+                    WindowPopUp.ErrorWindowPopUp("No Connection With Module. Check Your Connection.");
+                }
+
                 if (is_menu_open) is_menu_open = !is_menu_open;
             });
 
@@ -569,30 +573,6 @@ namespace NPUDemoIntegrated.ViewModels
             //return tmpArray;
         }
 
-        public override void DeactivateModule(EModuleType targetModule)
-        {
-            while (_serialService.connectionState == EConnectionState.SendingImage)
-            {
-                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState} wait until sending is finished");
-                Thread.Sleep(20);
-            }
-            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState}");
-
-            isSendAuto = false;
-            _measureTimer.Stop();
-
-            Thread.Sleep(10);
-
-            _serialService.SendModuleChangeNotice(targetModule);
-            _serialService.ModuleDisconnect();
-
-            ModuleCommand = ModuleConnectCommand;
-
-            _serialService.SerialReceiveEventDispose();
-
-            Thread.Sleep(20);
-        }
-
         private void FindMaxTempInFace(IRConfig.EClassArray cls, OpenCvSharp.Rect box)
         {
             double downsizeRatio = 32.0f / irConfig.resolution;
@@ -629,6 +609,30 @@ namespace NPUDemoIntegrated.ViewModels
                 pixelMax = maxTemp;
             }
             // else pixelMax = 0.0f;
+        }
+
+        public override void DeactivateModule(EModuleType targetModule)
+        {
+            while (_serialService.connectionState == EConnectionState.SendingImage)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState} wait until sending is finished");
+                Thread.Sleep(20);
+            }
+            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{_serialService.connectionState}");
+
+            isSendAuto = false;
+            _measureTimer.Stop();
+
+            Thread.Sleep(10);
+
+            _serialService.SendModuleChangeNotice(targetModule);
+            _serialService.ModuleDisconnect();
+
+            ModuleCommand = ModuleConnectCommand;
+
+            _serialService.SerialReceiveEventDispose();
+
+            Thread.Sleep(20);
         }
 
 

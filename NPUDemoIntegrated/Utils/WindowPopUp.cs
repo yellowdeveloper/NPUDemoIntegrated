@@ -5,13 +5,13 @@ namespace NPUDemoIntegrated.Utils
 {
     internal class WindowPopUp
     {
-        public static void ErrorWindowPopUp()
+        public static void ErrorWindowPopUp(string errMsg)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                ErrorWindow errorWindow = new ErrorWindow();
+                ErrorWindow errorWindow = new ErrorWindow(errMsg);
                 errorWindow.Owner = Application.Current.MainWindow;
-                errorWindow.Show();
+                errorWindow.ShowDialog();
             });
         }
     }

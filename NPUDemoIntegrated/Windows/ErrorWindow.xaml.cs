@@ -21,20 +21,28 @@ namespace NPUDemoIntegrated.Windows
     /// </summary>
     public partial class ErrorWindow : Window
     {
-        public ErrorWindow()
+        private string _errMsg;
+        public ErrorWindow(string errMsg)
         {
             InitializeComponent();
+            _errMsg = errMsg;
+            this.ErrorMessage.Text = errMsg;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Window MainWindow = Application.Current.MainWindow;
-            
 
             if (MainWindow != null)
             {
                 if (MainWindow?.DataContext is ViewModels.MainViewModel vm)
                 {
+                    if (!_errMsg.StartsWith("CRITICAL"))
+                    {
+                        this.Close();
+                        return;
+                    }
+
                     GlobalLogManager.Instance.ConsoleLog("Closing ... Dispose all Instances");
                     vm.OBJVM.DeactivateModule(EModuleType.OBJ);
                     vm.IRVM.DeactivateModule(EModuleType.OBJ);
@@ -43,6 +51,7 @@ namespace NPUDemoIntegrated.Windows
                     vm.IRVM.Dispose();
                 }
 
+                this.Close();
                 MainWindow.Close();
                 // Application.Current.Shutdown();
             }

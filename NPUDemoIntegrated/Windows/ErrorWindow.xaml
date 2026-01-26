@@ -12,7 +12,8 @@
                 <RowDefinition Height="2*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="CRITICAL ERROR!&#xA;CLOSE THE PROGRAM!!" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="25" FontWeight="Bold" Foreground="Red" TextAlignment="Center"/>
+            <TextBlock x:Name="ErrorMessage" Grid.Row="0" Text="" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"
+                       Foreground="Red" TextAlignment="Center" TextWrapping="WrapWithOverflow"/>
             <Button Grid.Row="1" Margin="150,5,150,15" Content="OK" FontSize="20" Click="Button_Click"/>
         </Grid>
     </Border>
