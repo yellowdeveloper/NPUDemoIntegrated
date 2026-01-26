@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:NPUDemoIntegrated.CustomControls"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1600">
-    <Border Background="#FF26252B" BorderBrush="AliceBlue" BorderThickness="2">
+    <Border Background="#FF151419" BorderBrush="#FFFFFDD0" BorderThickness="2">
         <Grid>
             <Grid>
                 <Grid>
@@ -22,23 +22,9 @@
                                     <RowDefinition Height="45"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="— Real-Time —" FontSize="36" HorizontalAlignment="Center" FontFamily="{StaticResource FontNanumNeo}"
-                                           FontWeight="Heavy" Margin="0,5,0,0" Foreground="White"/>
-                                <Border Grid.Row="0" HorizontalAlignment="Right">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Button Grid.Column="0" Content="📷--🔗" FontSize="20" Margin="5,5,0,5" Background="Transparent"
-                                                Command="{Binding ModuleCommand}" TextBlock.TextAlignment="Center"
-                                                Style="{StaticResource ButtonToggle}" Tag="{Binding modColor}"/>
-
-                                        <ToggleButton Grid.Column="1" Content="▶" FontSize="30" Margin="20,0,20,5"
-                                                      IsChecked="{Binding IsMeasuring, Mode=TwoWay}"
-                                                      Command="{Binding AutoMeasureToggleCommand}" Style="{StaticResource ButtonToggle}"
-                                                      CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"/>
-                                    </Grid>
+                                <Border Grid.Row="0" Margin="5,5,2.5,0" BorderBrush="AliceBlue" BorderThickness="0,0,0,0">
+                                    <TextBlock Text="· R e a l  —  T i m e " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
+                                           FontWeight="Heavy"  Foreground="White"/>
                                 </Border>
                                 <Border Grid.Row="1" Background="Black" Margin="5,5,2.5,5" CornerRadius="2.5">
                                     <Grid>
@@ -58,8 +44,10 @@
                                     <RowDefinition Height="45"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="— Doksan-NPU —" FontSize="36" HorizontalAlignment="Center" FontFamily="{StaticResource FontPretendard}"
-                                           FontWeight="Bold" Margin="0,5,0,0" Foreground="White"/>
+                                <Border Grid.Row="0" Margin="2.5,5,5,0" BorderBrush="AliceBlue" BorderThickness="0,0,0,0">
+                                    <TextBlock Text="· D o k s a n  —  N P U " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
+                                           FontWeight="Heavy" Foreground="White"/>
+                                </Border>
                                 <Border Grid.Row="1" Background="Black" Margin="2.5,5,5,5" CornerRadius="2.5">
                                     <Grid Background="Transparent">
                                         <Viewbox>
