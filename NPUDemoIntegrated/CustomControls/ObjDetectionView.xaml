@@ -45,7 +45,7 @@
                             </Viewbox>
                                 <TextBlock Text="{Binding fps, StringFormat=Fps(inference): {0:F2}}" Foreground="LawnGreen" FontSize="15" HorizontalAlignment="Right" Margin="0,10,10,0" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy"/>
                                 <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80"
-                                              Background="Transparent" BorderThickness="0" IsChecked="{Binding is_send_auto, Mode=TwoWay}"
+                                              Background="Transparent" BorderThickness="0" IsChecked="{Binding isSendAuto, Mode=TwoWay}"
                                               Style="{StaticResource AutoSendToggle}" Foreground="Gray"/>
                             </Grid>
                     </Border>

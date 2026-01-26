@@ -146,6 +146,7 @@ namespace NPUDemoIntegrated.ViewModels
             set
             {
                 _isSendAuto = value;
+                GlobalLogManager.Instance.ConsoleLog("isSendAutoEnabled");
                 OnPropertyChanged();
             }
         }
@@ -350,6 +351,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 if (isSendAuto)
                 {
+                    GlobalLogManager.Instance.ConsoleLog("isSendAutoConditionEntered");
                     _ = SendFramePeriodically();
                 }
 
