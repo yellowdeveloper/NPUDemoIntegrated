@@ -83,7 +83,7 @@
                 </Button>
             </Grid>
 
-            <ToggleButton Grid.Column="2" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="객체 탐지 시작"
+            <ToggleButton Grid.Column="2" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="Connect With NPU"
                       Command="{Binding ButtonCommand}">
                 <ToggleButton.Template>
                     <ControlTemplate TargetType="ToggleButton">
@@ -98,7 +98,7 @@
                 </Viewbox>
             </ToggleButton>
 
-            <Button Grid.Column="3" Command="{Binding ToggleMenuCommand}" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="설정 ...">
+            <Button Grid.Column="3" Command="{Binding ToggleMenuCommand}" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="Config">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border Background="Transparent" BorderThickness="0">
@@ -112,7 +112,7 @@
                 </Viewbox>
             </Button>
 
-            <Button Grid.Column="4" Click="Button_Click" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="닫기">
+            <Button Grid.Column="4" Click="Button_Click" Margin="0,25,25,25" Background="{x:Null}" Foreground="White" BorderBrush="{x:Null}" ToolTip="Close">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border Background="Transparent" BorderThickness="0">

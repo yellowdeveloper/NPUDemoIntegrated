@@ -98,12 +98,12 @@ namespace NPUDemoIntegrated.ViewModels
                     if (sharedStatus.connectionState == EConnectionState.Disconnected)
                     {
                         IRVM.ButtonCommand = IRVM.ConnectCommand;
-                        IRVM.modColor = "White";
+                        IRVM.modColor = "Black";
                     }
                     else
                     {
                         IRVM.ButtonCommand = IRVM.DisconnectCommand;
-                        IRVM.modColor = "White";
+                        IRVM.modColor = "Black";
                     }
 
                     currentContext = IRVM;

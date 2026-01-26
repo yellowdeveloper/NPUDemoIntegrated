@@ -31,14 +31,16 @@
                     <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1,0,1,1" Margin="10,0,0,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Content="Conn" FontSize="30" Margin="20,5,20,5" Background="{Binding modColor}" Foreground="Black"
-                                    BorderBrush="Black" Command="{Binding ModuleCommand}" TextBlock.TextAlignment="Center"/>
-                            <ToggleButton Grid.Column="1" Content="▶" FontSize="40" Margin="20,5,20,5" Background="Transparent"
-                                          Foreground="Black" BorderBrush="Black" IsChecked="{Binding IsMeasuring, Mode=TwoWay}"
-                                          Command="{Binding AutoMeasureToggleCommand}"
+                            <Button Grid.Column="0" Content="📷--🔗" FontSize="40" Margin="0,5,0,5" Background="Transparent"
+                                    Command="{Binding ModuleCommand}" TextBlock.TextAlignment="Center"
+                                    Style="{StaticResource ButtonToggle}" Tag="{Binding modColor}"/>
+                            
+                            <ToggleButton Grid.Column="1" Content="▶" FontSize="50" Margin="20,5,20,5"
+                                          IsChecked="{Binding IsMeasuring, Mode=TwoWay}"
+                                          Command="{Binding AutoMeasureToggleCommand}" Style="{StaticResource ButtonToggle}"
                                           CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"/>
                         </Grid>
                     </Border>
