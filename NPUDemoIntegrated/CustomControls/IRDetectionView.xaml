@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:NPUDemoIntegrated.CustomControls"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1600">
-    <Border Background="#FF151419" BorderBrush="#FFFFFDD0" BorderThickness="2">
+    <Border Background="#FF151419" BorderBrush="#FFFFFDD0" BorderThickness="0,1,0,1">
         <Grid>
             <Grid>
                 <Grid>
@@ -23,16 +23,20 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Border Grid.Row="0" Margin="5,5,2.5,0" BorderBrush="AliceBlue" BorderThickness="0,0,0,0">
-                                    <TextBlock Text="· R e a l  —  T i m e " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
+                                    <TextBlock Text="· Real — Time " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
                                            FontWeight="Heavy"  Foreground="White"/>
                                 </Border>
                                 <Border Grid.Row="1" Background="Black" Margin="5,5,2.5,5" CornerRadius="2.5">
-                                    <Grid>
+                                    <Grid Background="Transparent">
                                         <Viewbox>
                                             <Image Source="{Binding colorBitmap}"/>
                                         </Viewbox>
                                         <TextBlock Text="{Binding rtFps, StringFormat=Fps(real-time): {0:F2}}" Foreground="LawnGreen" FontSize="15" HorizontalAlignment="Right" Margin="0,10,10,0" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy"/>
-                                        <local:IRModuleConfigPanel Grid.Column="1" Width="300" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="5,5,0,5"/>
+                                        <ToggleButton HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Panel.ZIndex="10"
+                                                      Background="Transparent" BorderThickness="0" Style="{StaticResource IRMenuToggle}"
+                                                      Foreground="White" FontSize="25" IsChecked="{Binding isModuleConfigOpen, Mode=TwoWay}">
+                                        </ToggleButton>
+                                        <local:IRModuleConfigPanel Width="300" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="5,5,0,5"/>
                                     </Grid>
                                 </Border>
                             </Grid>
@@ -45,19 +49,23 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Border Grid.Row="0" Margin="2.5,5,5,0" BorderBrush="AliceBlue" BorderThickness="0,0,0,0">
-                                    <TextBlock Text="· D o k s a n  —  N P U " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
+                                    <TextBlock Text="· Doksan — NPU " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
                                            FontWeight="Heavy" Foreground="White"/>
                                 </Border>
                                 <Border Grid.Row="1" Background="Black" Margin="2.5,5,5,5" CornerRadius="2.5">
                                     <Grid Background="Transparent">
-                                        <Viewbox>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="183*"/>
+                                            <ColumnDefinition Width="595*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Viewbox Grid.ColumnSpan="2">
                                             <Image Source="{Binding bitmapShow}"/>
                                         </Viewbox>
-                                        <TextBlock Text="{Binding fps, StringFormat=Fps(inference): {0:F2}}" Foreground="LawnGreen" FontSize="15" HorizontalAlignment="Right" Margin="0,10,10,0" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy"/>
+                                        <TextBlock Text="{Binding fps, StringFormat=Fps(inference): {0:F2}}" Foreground="LawnGreen" FontSize="15" HorizontalAlignment="Right" Margin="0,10,10,0" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy" Grid.Column="1"/>
                                         <TextBlock Text="{Binding pixelMax, StringFormat=MAX_TEMP(face) {0:F2}}" Foreground="White" FontSize="15" HorizontalAlignment="Left" Margin="10,10,00,0" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy"/>
-                                        <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80"
+                                        <ToggleButton HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="80"
                                                       Background="Transparent" BorderThickness="0" IsChecked="{Binding isSendAuto, Mode=TwoWay}"
-                                                      Style="{StaticResource AutoSendToggle}" Foreground="White">
+                                                      Style="{StaticResource AutoSendToggle}" Foreground="White" Grid.Column="1" Margin="166,0,0,0">
                                         </ToggleButton>
                                     </Grid>
                                 </Border>

@@ -35,7 +35,9 @@ namespace NPUDemoIntegrated.ViewModels
         public ICommand ModuleDisconnectCommand { get; }
         public ICommand AutoMeasureToggleCommand { get; }
         public ICommand SendCommand { get; }
+        public ICommand ToggleModuleMenu { get; }
         private ICommand _moduleCommand;
+
 
         private List<OpenCvSharp.Rect> _bbox = new List<OpenCvSharp.Rect>();
         public float[] pixelArray => _serialService.Data.pixelTempArray;
@@ -55,6 +57,7 @@ namespace NPUDemoIntegrated.ViewModels
         private string _modColor;
         private bool _isSendAuto = false;
         private bool _isInterpolate = false;
+        private bool _isModuleConfigOpen = false;
 
         private bool _isSending = false;
         private int _tryCount = 0;
@@ -98,6 +101,22 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
+        public bool isInterpolate
+        {
+            get { return _isInterpolate; }
+            set
+            {
+                _isInterpolate = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool isModuleConfigOpen
+        {
+            get => _isModuleConfigOpen;
+            set { _isModuleConfigOpen = value; OnPropertyChanged(); }
+        }
+
         public double fps
         {
             get { return _fps; }
@@ -113,16 +132,6 @@ namespace NPUDemoIntegrated.ViewModels
             set
             {
                 _rtFps = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool isInterpolate
-        {
-            get { return _isInterpolate; }
-            set
-            {
-                _isInterpolate = value;
                 OnPropertyChanged();
             }
         }
@@ -229,6 +238,10 @@ namespace NPUDemoIntegrated.ViewModels
                     });
                 }
             };
+
+            ToggleModuleMenu = new RelayCommand(param => {
+                isModuleConfigOpen = !isModuleConfigOpen;
+            });
 
             ConnectCommand = new RelayCommand(param => {
                 if (_serialService.Connect() == 1) ButtonCommand = DisconnectCommand;

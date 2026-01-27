@@ -143,8 +143,6 @@
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
                         </Border>
-                        <ControlTemplate.Triggers>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -160,6 +158,37 @@
                 <Trigger Property="IsPressed" Value="True">
                     <Setter Property="Foreground" Value="DarkGray"/>
                 </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!--Toggle IR Config Menu-->
+        <Style x:Key="IRMenuToggle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid Background="Transparent">
+                            <ContentPresenter x:Name="text" HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" Content=">"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="text"  Property="Content" Value="🛠️"/>
+                            </Trigger>
+
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="text" Property="Content" Value="x"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}"
+             Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Application.Resources>

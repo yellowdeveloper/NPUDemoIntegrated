@@ -19,7 +19,7 @@
                         <RowDefinition Height="45"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text=" R e a l  —  T i m e " FontSize="36" HorizontalAlignment="Center" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy" Margin="0,5,0,0"/>
+                        <TextBlock Grid.Row="0" Text=" Real — Time " FontSize="36" HorizontalAlignment="Center" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy" Margin="0,5,0,0"/>
                     <Border Grid.Row="1" Background="Black" Margin="5,5,5,5">
                         <Viewbox>
                             <Border Background="White" Width="4" Height="3">
@@ -35,7 +35,7 @@
                         <RowDefinition Height="45"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text=" D o k s a n  —  N P U " FontSize="36" HorizontalAlignment="Center" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy" Margin="0,5,0,0"/>
+                        <TextBlock Grid.Row="0" Text=" Doksan — NPU " FontSize="36" HorizontalAlignment="Center" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy" Margin="0,5,0,0"/>
                     <Border Grid.Row="1" Background="Black" Margin="5,5,5,5">
                         <Grid>
                             <Viewbox>

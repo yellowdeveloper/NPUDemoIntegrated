@@ -6,7 +6,41 @@
              xmlns:local="clr-namespace:NPUDemoIntegrated.CustomControls"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="300">
-    <Border>
+    <UserControl.Resources>
+        <Storyboard x:Key="config_fade_close">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                     To="0" Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        
+        <Storyboard x:Key="config_fade_open">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             To="1.0" Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <Border Background="Transparent" Width="300" IsHitTestVisible="{Binding isModuleConfigOpen}" Opacity="0">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding ="{Binding isModuleConfigOpen}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard Storyboard="{StaticResource config_fade_open}"/>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                            <BeginStoryboard Storyboard="{StaticResource config_fade_close}"/>
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -19,7 +53,7 @@
 
             <Border Grid.Row="0" BorderBrush="White" BorderThickness="0,0,0,1" Margin="10,0,10,0">
                 <TextBlock Grid.Row="0" Text = "{Binding sensorTemp, StringFormat=SensorTemp {0} ℃}" FontSize="20"
-               HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" TextAlignment="Center"/>
+       HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" TextAlignment="Center"/>
             </Border>
             <Border Grid.Row="1" BorderBrush="White" BorderThickness="0,0,0,1" Margin="10,0,10,0">
                 <Grid>
@@ -27,14 +61,14 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Content="📷--🔗" FontSize="40" Margin="0,5,0,5" Background="Transparent"
+                    <Button Grid.Column="0" Content="📷—🔗" FontSize="40" Margin="0,5,0,5" Background="Transparent"
                             Command="{Binding ModuleCommand}" TextBlock.TextAlignment="Center"
                             Style="{StaticResource ButtonToggle}" Tag="{Binding modColor}"/>
 
                     <ToggleButton Grid.Column="1" Content="▶" FontSize="50" Margin="20,5,20,5"
-                                  IsChecked="{Binding IsMeasuring, Mode=TwoWay}"
-                                  Command="{Binding AutoMeasureToggleCommand}" Style="{StaticResource ButtonToggle}"
-                                  CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"/>
+                          IsChecked="{Binding IsMeasuring, Mode=TwoWay}"
+                          Command="{Binding AutoMeasureToggleCommand}" Style="{StaticResource ButtonToggle}"
+                          CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"/>
                 </Grid>
             </Border>
             <Border Grid.Row="2" BorderBrush="White" BorderThickness="0,0,0,1" Margin="10,0,10,0">
@@ -44,21 +78,21 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text = "Size Of Data (bytes)" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Foreground="White" TextAlignment="Center"/>
+            Foreground="White" TextAlignment="Center"/>
                     <TextBox Grid.Row="1" Text = "{Binding irConfig.numOfData}" FontSize="20" Foreground="Black" Margin="20,5,20,5"
-                    TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </Border>
-            <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0,0,0,1" Margin="10,0,10,0">
+            <Border Grid.Row="3" BorderBrush="White" BorderThickness="0,0,0,1" Margin="10,0,10,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text = "Resolution" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Foreground="White" TextAlignment="Center"/>
+            Foreground="White" TextAlignment="Center"/>
                     <TextBox Grid.Row="1" Text = "{Binding irConfig.resolution}" FontSize="20" Foreground="Black" Margin="20,5,20,5"
-                    TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </Grid>
             </Border>
             <Border Grid.Row="4" BorderBrush="White" BorderThickness="0,0,0,1" Margin="10,0,10,0">
@@ -73,9 +107,9 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text = "Min Temp" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                        Foreground="White" TextAlignment="Center"/>
+                Foreground="White" TextAlignment="Center"/>
                         <TextBox Grid.Row="1" Text = "{Binding irConfig.minTemp}" FontSize="20" Foreground="Black" Margin="20,5,20,5"
-                        TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     </Grid>
                     <Grid Grid.Column="1">
                         <Grid.RowDefinitions>
@@ -83,15 +117,15 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text = "Max Temp" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="White" TextAlignment="Center"/>
+                   Foreground="White" TextAlignment="Center"/>
                         <TextBox Grid.Row="1" Text = "{Binding irConfig.maxTemp}" FontSize="20" Foreground="Black" Margin="20,5,20,5"
-                         TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                 TextAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                     </Grid>
                 </Grid>
             </Border>
             <Border Grid.Row="5" BorderBrush="White" BorderThickness="0,0,0,0" Margin="10,0,10,10" CornerRadius="0,0,5,5">
                 <CheckBox Grid.Row="1" Grid.Column="1" Content = "interpolate" HorizontalAlignment="Center" VerticalAlignment="Center"
-              Foreground="White" IsChecked="{Binding isInterpolate, Mode=TwoWay}"/>
+                          Foreground="White" IsChecked="{Binding isInterpolate, Mode=TwoWay}"/>
             </Border>
         </Grid>
     </Border>
