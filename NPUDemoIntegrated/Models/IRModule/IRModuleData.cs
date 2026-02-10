@@ -152,7 +152,7 @@ namespace NPUDemoIntegrated.Models.IRModule
             if (data_length != numOfData)
             {
                 // ADD ERROR LOG: Data Length Mismatch
-                WindowPopUp.ErrorWindowPopUp("CRITICAL ERROR OCCURED IN MODULE COMMUNICATION.&x#aA;PROGRAM WILL SHUT DOWN IN 5sec.");
+                WindowPopUp.ErrorWindowPopUp("CRITICAL ERROR OCCURED IN MODULE COMMUNICATION.PROGRAM WILL SHUT DOWN IN 5sec.");
                 Thread.Sleep(5000);
 
                 Environment.Exit(-1);

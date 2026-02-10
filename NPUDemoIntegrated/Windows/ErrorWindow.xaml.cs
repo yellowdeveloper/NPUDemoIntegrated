@@ -37,22 +37,8 @@ namespace NPUDemoIntegrated.Windows
             {
                 if (MainWindow?.DataContext is ViewModels.MainViewModel vm)
                 {
-                    if (!_errMsg.StartsWith("CRITICAL"))
-                    {
-                        this.Close();
-                        return;
-                    }
-
-                    GlobalLogManager.Instance.ConsoleLog("Closing ... Dispose all Instances");
-                    vm.OBJVM.DeactivateModule(EModuleType.OBJ);
-                    vm.IRVM.DeactivateModule(EModuleType.OBJ);
-
-                    vm.OBJVM.Dispose();
-                    vm.IRVM.Dispose();
+                    this.Close();
                 }
-
-                this.Close();
-                MainWindow.Close();
                 // Application.Current.Shutdown();
             }
         }

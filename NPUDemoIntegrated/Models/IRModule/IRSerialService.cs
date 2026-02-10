@@ -29,6 +29,8 @@ namespace NPUDemoIntegrated.Models.IRModule
 
         private readonly object _rcLock = new object();
 
+        private bool isSendingCmd = false;
+
         public int ModuleConnect()
         {
             if (!spModule.IsOpen)
@@ -256,6 +258,7 @@ namespace NPUDemoIntegrated.Models.IRModule
 
         public void StartMeasure()
         {
+            isSendingCmd = true;
             int numOfData = _irConfig.numOfData;
 
             try
@@ -271,12 +274,14 @@ namespace NPUDemoIntegrated.Models.IRModule
                 _stopwatch.Stop();
                  Data.fps = 1.0f / _stopwatch.Elapsed.TotalSeconds;
                 // Console.WriteLine($"RT-FPS: {Data.fps}");
+                isSendingCmd = false;
                 _stopwatch.Restart();
                 // ADD DEBUG LOG
             }
             catch (Exception ex)
             {
                 // ADD ERROR LOG
+                isSendingCmd = false;
                 Console.WriteLine($"Start Measure Command Send ERROR: {ex}");
             }
         }
@@ -297,6 +302,10 @@ namespace NPUDemoIntegrated.Models.IRModule
         {
             if ((spModule != null && spModule.IsOpen))
             {
+                while (isSendingCmd)
+                {
+                    Thread.Sleep(10);
+                }
                 try
                 {
                     spModule.DataReceived -= OnSerialReceivedModule;
