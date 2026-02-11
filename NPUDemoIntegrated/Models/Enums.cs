@@ -21,6 +21,7 @@ namespace NPUDemoIntegrated.Models
     {
         OBJ,
         IR,
+        HBLV,
         RAIDAR
     }
 }

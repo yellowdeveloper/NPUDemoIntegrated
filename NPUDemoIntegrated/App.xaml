@@ -10,26 +10,150 @@
         <FontFamily x:Key="FontNanumNeo">pack://application:,,,/Fonts/#나눔스퀘어 네오</FontFamily>
 
         <!--Declare Styles as Static Resource-->
-        <!--Switch Button Style-->
-        <Style x:Key="SwitchVM" TargetType="Button">
+        
+        <Style x:Key="MenuItemButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Red"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="10">
+                            <ContentPresenter
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                TextBlock.FontWeight="Bold"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="OBJ">
-                    <Setter Property="Content" Value="Switch ▶ &#xA;IR Detection" />
-                    <Setter Property="CommandParameter" Value="IR" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="IR">
-                    <Setter Property="Content" Value="Switch ▶ &#xA;OBJ Detection" />
-                    <Setter Property="CommandParameter" Value="OBJ" />
-                </DataTrigger>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#FF212529"/>
                 </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#FF495057"/>
-                </Trigger>
             </Style.Triggers>
         </Style>
+        <!--Switch Button Style-->
+        <Style x:Key="SwitchVM" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="MainBorder"
+                                    Background="{TemplateBinding Background}">
+                                <StackPanel Orientation="Vertical"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="MenuTxt"
+                                        Foreground="{TemplateBinding Foreground}"
+                                        FontWeight="Bold"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Top">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter
+                                                    Property="Text"
+                                                    Value="Mode Select"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="OBJ">
+                                                        <Setter Property="Text" Value="OBJ Detection" />
+                                                    </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="IR">
+                                                        <Setter Property="Text" Value="IR Detection" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock
+                                        x:Name="MenuArrow"
+                                        Text="▼" FontSize="25"
+                                        VerticalAlignment="Bottom"
+                                        HorizontalAlignment="Center"
+                                        TextAlignment="Center"
+                                        Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Popup x:Name="MenuPopup"
+                                   IsOpen="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
+                                   StaysOpen="False"
+                                   PlacementTarget="{Binding ElementName=MainBorder}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   PopupAnimation="None">
+                                <Border
+                                    x:Name="PopupBorder"
+                                    Background="Black" 
+                                    BorderBrush="White"
+                                    Width="{Binding ActualWidth, ElementName=MainBorder}">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform ScaleY="0" CenterY="0"/>
+                                    </Border.RenderTransform>
+                                    <StackPanel>
+                                        <Button Content="▶ OBJ Detection"
+                                                Command="{Binding DataContext.SwitchViewCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                                                CommandParameter="OBJ"
+                                                Style="{StaticResource MenuItemButtonStyle}"/>
+
+                                        <Button Content="▶ IR Detection"
+                                                Command="{Binding DataContext.SwitchViewCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                                                CommandParameter="IR"
+                                                Style="{StaticResource MenuItemButtonStyle}"/>
+
+                                        <Button Content="▶ HBLV Detection"
+                                                Command="{Binding DataContext.SwitchViewCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                                                CommandParameter="HBLV"
+                                                Style="{StaticResource MenuItemButtonStyle}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MenuTxt" Property="Foreground" Value="LightGray"/>
+                            </Trigger>
+
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="MenuTxt" Property="Foreground" Value="LightGray"/>
+                                <Setter TargetName="MenuArrow" Property="Foreground" Value="Red"/>
+
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="PopupBorder" 
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                     From="0" To="1" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="PopupBorder" 
+                                                     Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                     From="1" To="0" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <!--Connect Button Style-->
         <Style x:Key="ConnectionNPU" TargetType="TextBlock">
             <Setter Property="Text" Value="🔗"/>

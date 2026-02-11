@@ -13,6 +13,7 @@ namespace NPUDemoIntegrated.ViewModels
     {
         public OBJViewModel OBJVM { get; }
         public IRViewModel IRVM { get; }
+        public HBLVViewModel HBLVVM { get; }
 
         private object _currentContext;
         private EModuleType _currentModule;
@@ -55,6 +56,7 @@ namespace NPUDemoIntegrated.ViewModels
             // Inject Service & Config to ViewModel
             OBJVM = new OBJViewModel(serialConfig, objConfig, objService);
             IRVM  = new IRViewModel(serialConfig, irConfig, irService);
+            HBLVVM = new HBLVViewModel(serialConfig, irConfig, irService);
 
             // --- Init ViewModel Status ---
             currentContext = OBJVM;
@@ -110,6 +112,22 @@ namespace NPUDemoIntegrated.ViewModels
                     currentModule = EModuleType.IR;
                     currentViewName = "IR";
                     IRVM.ActivateModule();
+                }
+                else if (targetView == "HBLV")
+                {
+                    if (sharedStatus.connectionState == EConnectionState.Disconnected)
+                    {
+                        HBLVVM.ButtonCommand = HBLVVM.ConnectCommand;
+                    }
+                    else
+                    {
+                        HBLVVM.ButtonCommand = HBLVVM.DisconnectCommand;
+                    }
+
+                    currentContext = HBLVVM;
+                    currentModule = EModuleType.HBLV;
+                    currentViewName = "HBLV";
+                    HBLVVM.ActivateModule();
                 }
             });
         }

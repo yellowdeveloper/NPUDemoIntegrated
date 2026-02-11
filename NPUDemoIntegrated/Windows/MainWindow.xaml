@@ -16,6 +16,10 @@
         <DataTemplate DataType="{x:Type viewModels:IRViewModel}">
             <customControls:IRDetectionView />
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModels:HBLVViewModel}">
+            <customControls:HBLVPredictView />
+        </DataTemplate>
     </Window.Resources>
     
     <Window.DataContext>

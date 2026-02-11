@@ -19,16 +19,9 @@
             </Grid.ColumnDefinitions>
 
             <Grid>
-                <Button Grid.Column="0" Command="{Binding DataContext.SwitchViewCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                        Foreground="White" FontSize="20" HorizontalAlignment="Center" Margin="10" Style="{StaticResource SwitchVM}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderThickness="0" BorderBrush="Red">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.TextAlignment="Center" Margin="10,0,10,0"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                <ToggleButton Grid.Column="0" Foreground="White" FontSize="20"
+                              HorizontalAlignment="Stretch" Margin="10"
+                              Style="{StaticResource SwitchVM}"/>
 
                 <Button Background="Transparent" Command="{Binding ToggleMenuCommand}">
                     <Button.Template>
