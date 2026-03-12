@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace NPUDemoIntegrated.Models.OBJModule
 {
@@ -76,12 +77,42 @@ namespace NPUDemoIntegrated.Models.OBJModule
         {
             if (_cts != null)
             {
-                _cts.Cancel();
-                _cts.Dispose();
+                try
+                {
+                    _cts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                catch (AggregateException)
+                {
+                }
+                finally
+                {
+                    try { _cts.Dispose(); } catch { }
+                    _cts = null;
+                }
             }
 
-            _capture.Release();
-            _capture.Dispose();
+            if (_capture != null)
+            {
+                try
+                {
+                    if (_capture.IsOpened())
+                    {
+                        _capture.Release();
+                    }
+                    _capture.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    GlobalLogManager.Instance.ConsoleLog($"Capture Dispose Error: {ex.Message}");
+                }
+                finally
+                {
+                    _capture = null;
+                }
+            }
 
             GlobalLogManager.Instance.ConsoleLog("All Resources Disposed");
             GlobalManagers.GlobalLogManager.Instance.AddLogToFile("DEBUG", "WebCamControl Disposed");

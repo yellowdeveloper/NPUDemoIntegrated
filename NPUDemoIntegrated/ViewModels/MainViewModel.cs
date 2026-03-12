@@ -5,6 +5,7 @@ using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
 using System.IO.Ports;
+using System.Windows;
 using System.Windows.Input;
 
 namespace NPUDemoIntegrated.ViewModels
@@ -18,6 +19,10 @@ namespace NPUDemoIntegrated.ViewModels
         private object _currentContext;
         private EModuleType _currentModule;
         private string _currentViewName;
+
+        public double windowHeight;
+        public double windowWidth;
+        public ResizeMode resizeMode;
         public object currentContext
         {
             get { return _currentContext; }
@@ -63,6 +68,8 @@ namespace NPUDemoIntegrated.ViewModels
             currentModule = EModuleType.OBJ;
             currentViewName = currentModule.ToString();
 
+            OBJVM.ActivateModule();
+
             // --- Set Command ---
             SwitchViewCommand = new RelayCommand(param =>
             {
@@ -92,6 +99,11 @@ namespace NPUDemoIntegrated.ViewModels
 
                     currentContext = OBJVM;
                     currentModule = EModuleType.OBJ;
+
+                    windowHeight = OBJVM.windowHeight;
+                    windowWidth = OBJVM.windowWidth;
+                    resizeMode = OBJVM.resizeMode;
+
                     currentViewName = "OBJ";
                     OBJVM.ActivateModule();
                 }
@@ -110,6 +122,11 @@ namespace NPUDemoIntegrated.ViewModels
 
                     currentContext = IRVM;
                     currentModule = EModuleType.IR;
+
+                    windowHeight = IRVM.windowHeight;
+                    windowWidth = IRVM.windowWidth;
+                    resizeMode = IRVM.resizeMode;
+
                     currentViewName = "IR";
                     IRVM.ActivateModule();
                 }
@@ -126,6 +143,11 @@ namespace NPUDemoIntegrated.ViewModels
 
                     currentContext = HBLVVM;
                     currentModule = EModuleType.HBLV;
+
+                    windowHeight = HBLVVM.windowHeight;
+                    windowWidth = HBLVVM.windowWidth;
+                    resizeMode = HBLVVM.resizeMode;
+
                     currentViewName = "HBLV";
                     HBLVVM.ActivateModule();
                 }

@@ -6,48 +6,112 @@
              xmlns:local="clr-namespace:NPUDemoIntegrated.CustomControls"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1600">
-    <Border Background="#2A0F12" BorderBrush="#FFB18E92" BorderThickness="0,1,0,1">
+    <Border Background="#120507" BorderBrush="#FF9E7D82" BorderThickness="0,1,0,1">
         <Grid>
             <Grid>
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" CornerRadius="2.5,0,0,2.5" BorderThickness="1,1,0,1" BorderBrush="#FF6F3C42 " Margin="10,10,0,10">
+                    <Border Grid.Column="0" CornerRadius="2.5,0,0,2.5" BorderThickness="1,1,0,1" BorderBrush="#FF4D2E32 " Margin="10,10,0,10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="45"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Border Grid.Row="0" BorderBrush="#FF7F5056" BorderThickness="0,0,0,1" Margin="5,5,5,0">
+                            <Border Grid.Row="0" BorderBrush="#FF5C3A3E" BorderThickness="0,0,0,1" Margin="5,5,5,0">
                                 <TextBlock Text="· Real - Time Hand Detection" FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
                                            FontWeight="Heavy"  Foreground="#FFF7EDEE"/>
                             </Border>
-                            <Border Grid.Row="1" Background="Black" Margin="5,5,5,5" CornerRadius="2.5">
-                                <Grid Background="Transparent" Margin="0,2.5,0,0">
+                            <Border Grid.Row="1" Background="Transparent" Margin="5,5,5,5" CornerRadius="2.5">
+                                <Grid Background="Transparent" Margin="0,2,0,2">
                                     <Viewbox>
-                                        <Image Source="{Binding colorBitmap}"/>
+                                        <Grid>
+                                            <Image Source="{Binding bitmapShow}"/>
+                                            <!--CHECK 320x320 region and white reference region-->
+                                            <!--Border BorderBrush="Red" Width="320" Height="320" BorderThickness="2"/-->
+                                            <!--Border BorderBrush="White" Width="34" Height="34" BorderThickness="2" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                                    Margin="70,0,0,81"/-->
+                                            <Grid>
+                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0">
+                                                    <TextBlock Text="기준영역에 검지, 중지, 약지를 보여주세요" 
+                                                               Foreground="White" 
+                                                               FontFamily="{StaticResource FontNanumNeo}"
+                                                               FontSize="20" 
+                                                               FontWeight="Bold"
+                                                               HorizontalAlignment="Center"
+                                                               Margin="0,0,0,10"
+                                                               >
+                                                        <TextBlock.Effect>
+                                                            <DropShadowEffect ShadowDepth="0" Color="Black" BlurRadius="4" Opacity="0.8"/>
+                                                        </TextBlock.Effect>
+                                                    </TextBlock>
+                                                    <Border Width="245" Height="60" 
+                                                            BorderBrush="#FF7FFF00" 
+                                                            BorderThickness="3,3,1.5,0" 
+                                                            CornerRadius="10,0,0,0"
+                                                            HorizontalAlignment="Right" 
+                                                            VerticalAlignment="Center"
+                                                            Margin="0,0,10,0"
+                                                            Opacity="0.7">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect ShadowDepth="0" Color="White" BlurRadius="4" Opacity="0.8"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <Border Width="30" Height="60" 
+                                                            BorderBrush="#FF7FFF00" 
+                                                            BorderThickness="3,3,0,3"
+                                                            CornerRadius="10,0,0,10"
+                                                            HorizontalAlignment="Right" 
+                                                            VerticalAlignment="Center"
+                                                            Margin="0,0,252,0"
+                                                            Opacity="0.7">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect ShadowDepth="0" Color="White" BlurRadius="4" Opacity="1"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <Border Width="40" Height="60" 
+                                                            BorderBrush="#FF7FFF00" 
+                                                            BorderThickness="3,0,0,3" 
+                                                            CornerRadius="0,0,0,10"
+                                                            HorizontalAlignment="Right" 
+                                                            VerticalAlignment="Center"
+                                                            Margin="0,0,215,0"
+                                                            Opacity="0.7">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect ShadowDepth="0" Color="White" BlurRadius="4" Opacity="0.8"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <Border Width="208" Height="60"
+                                                            BorderBrush="#FF7FFF00" 
+                                                            BorderThickness="3,0,1.5,3" 
+                                                            CornerRadius="0,0,0,10"
+                                                            HorizontalAlignment="Right" 
+                                                            VerticalAlignment="Center"
+                                                            Margin="0,0,10,0"
+                                                            Opacity="0.7">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect ShadowDepth="0" Color="White" BlurRadius="4" Opacity="0.8"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
                                     </Viewbox>
-                                    <TextBlock Text="{Binding rtFps, StringFormat=Fps(real-time): {0:F2}}" Foreground="LawnGreen" FontSize="15" HorizontalAlignment="Right" Margin="0,10,10,0" FontFamily="{StaticResource FontNanumNeo}" FontWeight="Heavy"/>
-                                    <ToggleButton HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Height="60" Panel.ZIndex="10"
-                                                      Background="Transparent" BorderThickness="0" Style="{StaticResource IRMenuToggle}"
-                                                      Foreground="White" FontSize="25" IsChecked="{Binding isModuleConfigOpen, Mode=TwoWay}">
-                                    </ToggleButton>
-                                    <local:IRModuleConfigPanel Width="300" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="5,5,0,5"/>
                                 </Grid>
                             </Border>
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="1" CornerRadius="0,2.5,2.5,0" BorderThickness="1,1,1,1" BorderBrush="#FF6F3C42" Margin="0,10,10,10">
+                    <Border Grid.Column="1" CornerRadius="0,2.5,2.5,0" BorderThickness="1,1,1,1" BorderBrush="#FF4D2E32" Margin="0,10,10,10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="45"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Margin="5,5,5,0" BorderBrush="#FF7F5056" BorderThickness="0,0,0,1">
+                            <Border Grid.Row="0" Margin="5,5,5,0" BorderBrush="#FF5C3A3E" BorderThickness="0,0,0,1">
                                 <TextBlock Text="· Hb lv Prediction " FontSize="36" HorizontalAlignment="Left" FontFamily="{StaticResource FontNanumNeo}"
                                            FontWeight="Heavy" Foreground="#FFF7EDEE"/>
                             </Border>

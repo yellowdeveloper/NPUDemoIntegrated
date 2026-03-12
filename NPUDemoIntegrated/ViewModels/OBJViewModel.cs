@@ -28,10 +28,10 @@ namespace NPUDemoIntegrated.ViewModels
         /// <summary>
         /// readonly Variables for Module Control
         /// </summary>
-        private readonly WebCamControl webCamControl;
         private readonly OBJSerialService serialService;
         // private readonly Timer timer;
         private readonly Stopwatch stopwatch = new Stopwatch();
+        private WebCamControl webCamControl;
 
         /// <summary>
         /// Lock Objects for Thread Safety
@@ -43,13 +43,13 @@ namespace NPUDemoIntegrated.ViewModels
         /// <summary>
         /// Image Variables for Update Images
         /// </summary>
+        private BitmapSource _bitmap;
+        private BitmapSource _bitmapSent;
         private WriteableBitmap bitmapTmp;
         private WriteableBitmap bitmapSentTmp;
         private Mat frameToSend;
         private Mat frameToDraw;
-        private Mat tmpMat = new Mat();
-        private BitmapSource _bitmap;
-        private BitmapSource _bitmapSent;
+        private Mat tmpMat;
 
         /// <summary>
         /// List Variables for Drawing Inference Results
@@ -91,6 +91,9 @@ namespace NPUDemoIntegrated.ViewModels
         /// </summary>
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device object detection inference";
+        public override double windowHeight => 900;
+        public override double windowWidth => 1600;
+        public override ResizeMode resizeMode => ResizeMode.CanMinimize;
 
         /// <summary>
         /// public Property for Display Image Binding (Real-Time)
@@ -190,12 +193,9 @@ namespace NPUDemoIntegrated.ViewModels
             objConfig = _objConfig;
             serialConfig = _serialConfig;
 
+            tmpMat = new Mat();
+
             //_viewModelId = DateTime.Now.ToString("\nInstance Creadted Time == HH:mm:ss.fff\n");
-
-            webCamControl = new WebCamControl();
-
-            webCamControl.FrameUpdate += OnFrameUpdate;
-            webCamControl.WebCamInitialize();
 
             serialService.PointsReceived += OnPointsReceived;
 
@@ -237,6 +237,7 @@ namespace NPUDemoIntegrated.ViewModels
         /// <returns></returns>
         private async Task SendFramePeriodically()
         {
+            GlobalLogManager.Instance.ConsoleLog($"SendFramePeriodicallyEntered trc::{tryCount} | state:: {serialService.connectionState} | isSending:: {isSending}");
             if (!isSending && tryCount >= 15 && serialService.connectionState == EConnectionState.WaitingForInference)
             {
                 serialService.connectionState = EConnectionState.Connected;
@@ -252,12 +253,21 @@ namespace NPUDemoIntegrated.ViewModels
 
                 tryCount = 0;
 
-                //Debug.Write("\nMat Variable set");
+                GlobalLogManager.Instance.ConsoleLog("\nMat Variable set");
                 lock (frameLock)
                 {
-                    //Debug.Write("\nFrameLock Called");
+                    GlobalLogManager.Instance.ConsoleLog("\nFrameLock Called");
                     if (frameToSend == null) testFlag = true;
-                    else { frameToSend.CopyTo(tmpMat); }
+                    else {
+                        try
+                        {
+                            frameToSend.CopyTo(tmpMat);
+                        }
+                        catch (Exception ex)
+                        {
+                            GlobalLogManager.Instance.ConsoleLog($"ERROR {ex}");
+                        }
+                    }
                 }
 
                 if (testFlag)
@@ -286,7 +296,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 lock (sendLock)
                 {
-                    //Debug.Write("\nSendLock Called");
+                    GlobalLogManager.Instance.ConsoleLog("\nSendLock Called");
                     if (frameToDraw != null && !frameToDraw.IsDisposed)
                     {
                         tmpMat.CopyTo(frameToDraw);
@@ -299,7 +309,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 try
                 {
-                    Debug.Write("\nSerialCommunication Called");
+                    GlobalLogManager.Instance.ConsoleLog("\nSerialCommunication Called");
                     stopwatch.Restart();
                     await serialService.SerialCommunication(resized);
                 }
@@ -311,7 +321,7 @@ namespace NPUDemoIntegrated.ViewModels
             }
             else if (serialService.connectionState == EConnectionState.WaitingForInference && isSendAuto)
             {
-                //GlobalLogManager.Instance.ConsoleLog($"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}"  );
+                GlobalLogManager.Instance.ConsoleLog($"SendFrame Failed ... is_sending: {isSending}  connection_status: {serialService.connectionState} try_count: {tryCount}"  );
                 //GlobalLogManager.Instance.AddLogToFile("ERROR", $"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}");
                 tryCount++;
             }
@@ -351,7 +361,7 @@ namespace NPUDemoIntegrated.ViewModels
 
                 if (isSendAuto)
                 {
-                    GlobalLogManager.Instance.ConsoleLog("isSendAutoConditionEntered");
+                    // GlobalLogManager.Instance.ConsoleLog($"isSendAutoConditionEntered condition :: {serialService.connectionState }");
                     _ = SendFramePeriodically();
                 }
 
@@ -453,31 +463,45 @@ namespace NPUDemoIntegrated.ViewModels
             while (serialService.connectionState == EConnectionState.SendingImage)
             {
                 GlobalLogManager.Instance.ConsoleLog($"now connection state ::{serialService.connectionState} wait until sending is finished");
-                Thread.Sleep(20);
+                Thread.Sleep(5);
             }
             GlobalLogManager.Instance.ConsoleLog($"now connection state ::{serialService.connectionState}");
 
             isSendAuto = false;
 
-            Thread.Sleep(20);
+            Thread.Sleep(10);
 
             serialService.SendModuleChangeNotice(targetModule);
             serialService.SerialReceiveEventDispose();
 
-            Thread.Sleep(20);
+            Thread.Sleep(10);
+            
+            this.Dispose();
         }
 
         public override void ActivateModule()
         {
             serialService.SerialReceiveEventSubscribe();
+
+            webCamControl = new WebCamControl();
+
+            webCamControl.FrameUpdate += OnFrameUpdate;
+            webCamControl.WebCamInitialize();
+
+            tmpMat = new Mat();
         }
 
         public override void Dispose()
         {
-            webCamControl.FrameUpdate -= OnFrameUpdate;
+            if (webCamControl != null)
+            {
+                webCamControl.FrameUpdate -= OnFrameUpdate;
+                webCamControl.Dispose();
+                webCamControl = null;
+            }
+
             serialService.PointsReceived -= OnPointsReceived;
 
-            webCamControl.Dispose();
             if (frameToDraw != null) frameToDraw.Dispose();
             if (frameToSend != null) frameToSend.Dispose();
             if (tmpMat != null) tmpMat.Dispose();

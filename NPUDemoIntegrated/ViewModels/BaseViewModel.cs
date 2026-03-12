@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace NPUDemoIntegrated.ViewModels
@@ -17,6 +18,10 @@ namespace NPUDemoIntegrated.ViewModels
     {
         public abstract string title { get; }
         public abstract string subTitle { get; }
+
+        public abstract double windowWidth { get; }
+        public abstract double windowHeight { get; }
+        public abstract ResizeMode resizeMode { get; }
 
         public ICommand ToggleMenuCommand { get; protected set; }
         public abstract ICommand ConnectCommand { get; }
