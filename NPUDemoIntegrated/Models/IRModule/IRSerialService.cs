@@ -153,6 +153,11 @@ namespace NPUDemoIntegrated.Models.IRModule
                     FindData();
                     if (pureData.Count >= 1)
                     {
+                        if (!(pureData.Count >= 10 && pureData.Count % 10 == 0))
+                        {
+                            GlobalLogManager.Instance.ConsoleLog("ERROR!! Data Length Not Available:: Clear Buffer");
+                            return;
+                        }
                         footerTryCnt = 0;
                         ProcessReceivedBuffer();
                         pureData.Clear();

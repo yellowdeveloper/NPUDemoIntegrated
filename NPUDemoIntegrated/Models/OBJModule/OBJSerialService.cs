@@ -83,16 +83,22 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
                     if (actually_read > 0) receivedBuffer.AddRange(buffer.Take(actually_read));
 
-                    //Console.WriteLine("");
-                    //for (int i = 0; i < buffer.Length; i++)
-                    //{
-                    //    Console.Write($"{buffer[i]:X2}");
-                    //}
-                    //Console.WriteLine("");
+                    Console.WriteLine("");
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        Console.Write($"{buffer[i]:X2}");
+                    }
+                    Console.WriteLine("");
 
                     FindData();
                     if (pureData.Count >= 1)
                     {
+                        if (!(pureData.Count >= 10 && pureData.Count % 10 == 0))
+                        {
+                            GlobalLogManager.Instance.ConsoleLog("ERROR!! Data Length Not Available:: Clear Buffer");
+                            return;
+                        }
+
                         footerTryCnt = 0;
                         ProcessReceivedBuffer();
                         pureData.Clear();

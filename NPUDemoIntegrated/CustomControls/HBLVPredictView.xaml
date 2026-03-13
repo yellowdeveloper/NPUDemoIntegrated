@@ -30,24 +30,21 @@
                                     <Viewbox>
                                         <Grid>
                                             <Image Source="{Binding bitmapShow}"/>
-                                            <!--CHECK 320x320 region and white reference region-->
-                                            <!--Border BorderBrush="Red" Width="320" Height="320" BorderThickness="2"/-->
-                                            <!--Border BorderBrush="White" Width="34" Height="34" BorderThickness="2" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                                    Margin="70,0,0,81"/-->
                                             <Grid>
-                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0">
-                                                    <TextBlock Text="기준영역에 검지, 중지, 약지를 보여주세요" 
-                                                               Foreground="White" 
-                                                               FontFamily="{StaticResource FontNanumNeo}"
-                                                               FontSize="20" 
-                                                               FontWeight="Bold"
-                                                               HorizontalAlignment="Center"
-                                                               Margin="0,0,0,10"
-                                                               >
-                                                        <TextBlock.Effect>
-                                                            <DropShadowEffect ShadowDepth="0" Color="Black" BlurRadius="4" Opacity="0.8"/>
-                                                        </TextBlock.Effect>
-                                                    </TextBlock>
+                                                <TextBlock Text="{Binding topMessage}" 
+                                                           Foreground="White" 
+                                                           FontFamily="{StaticResource FontNanumNeo}"
+                                                           FontSize="20" 
+                                                           FontWeight="Bold"
+                                                           HorizontalAlignment="Center"
+                                                           Margin="0,10,0,10"
+                                                           >
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect ShadowDepth="0" Color="Black" BlurRadius="4" Opacity="0.8"/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="50,0,0,0">
+                                                    
                                                     <Border Width="245" Height="60" 
                                                             BorderBrush="#FF7FFF00" 
                                                             BorderThickness="3,3,1.5,0" 

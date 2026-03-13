@@ -1,4 +1,5 @@
 ﻿using NPUDemoIntegrated.Models;
+using NPUDemoIntegrated.Models.HBLVModule;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using System.IO;
@@ -17,6 +18,7 @@ namespace NPUDemoIntegrated.GlobalManagers
 
         public OBJConfig objConfig { get; set; } = new OBJConfig();
         public IRConfig irConfig { get; set; } = new IRConfig();
+        public HBLVConfig hblvConfig { get; set; } = new HBLVConfig();
 
         public SerialConfig serialConfig { get; set; } = new SerialConfig();
 

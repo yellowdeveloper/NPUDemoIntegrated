@@ -1,5 +1,6 @@
 ﻿using NPUDemoIntegrated.GlobalManagers;
 using NPUDemoIntegrated.Models;
+using NPUDemoIntegrated.Models.HBLVModule;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
@@ -9,8 +10,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,9 +23,9 @@ namespace NPUDemoIntegrated.ViewModels
 {
     class HBLVViewModel : BaseViewModel
     {
-        private readonly IRSerialService _serialService;
+        private readonly HBLVSerialService serialService;
         private WebCamControl webCamControl;
-        public IRConfig irConfig { get; }
+        public HBLVConfig hblvConfig { get; }
         public SerialConfig serialConfig { get; }
 
         private readonly object frameLock = new object();
@@ -34,11 +37,18 @@ namespace NPUDemoIntegrated.ViewModels
         public override ICommand ConnectCommand { get; }
         public override ICommand DisconnectCommand { get; }
 
+        private string _topMessage = "기준영역에 검지, 중지, 약지를 보여주세요";
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device hemoglobin level inference";
         public override double windowHeight => 900;
         public override double windowWidth => 1180;
         public override ResizeMode resizeMode => ResizeMode.NoResize;
+
+        public string topMessage
+        {
+            get => _topMessage;
+            set { _topMessage = value; OnPropertyChanged(); }
+        }
 
         public BitmapSource bitmapShow
         {
@@ -46,11 +56,24 @@ namespace NPUDemoIntegrated.ViewModels
             set { _bitmap = value; OnPropertyChanged(); }
         }
 
-        public HBLVViewModel(SerialConfig _serialConfig, IRConfig _irConfig, IRSerialService service)
+        public HBLVViewModel(SerialConfig _serialConfig, HBLVConfig _hblvConfig, HBLVSerialService service)
         {
-            irConfig = _irConfig;
+            hblvConfig = _hblvConfig;
             serialConfig = _serialConfig;
-            _serialService = service;
+            serialService = service;
+
+            ConnectCommand = new RelayCommand(param => {
+                if (serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
+                if (is_menu_open) is_menu_open = !is_menu_open;
+            });
+
+            DisconnectCommand = new RelayCommand(param => {
+                Task.Run(() => serialService.Disconnect());
+                ButtonCommand = ConnectCommand;
+                if (is_menu_open) is_menu_open = !is_menu_open;
+            });
+
+            ButtonCommand = ConnectCommand;
         }
 
         private void OnFrameUpdate(Mat frame)
@@ -62,6 +85,8 @@ namespace NPUDemoIntegrated.ViewModels
                     {
                         OpenCvSharp.Rect roi = new OpenCvSharp.Rect(60, 80, 420, 320);
                         frame = frame[roi];
+                        OpenCvSharp.Rect white_ref = new OpenCvSharp.Rect(80, 205, 34, 34);
+                        Cv2.Rectangle(frame, white_ref, Scalar.Red, 1);
 
                         bitmapTmp = new WriteableBitmap(frame.Width, frame.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
                         bitmapShow = bitmapTmp;
@@ -73,7 +98,8 @@ namespace NPUDemoIntegrated.ViewModels
                 {
                     if (frameToSend != null && !frameToSend.IsDisposed)
                     {
-                        frame.CopyTo(frameToSend);
+                        OpenCvSharp.Rect roi = new OpenCvSharp.Rect(60, 0, 320, 320);
+                        frame[roi].CopyTo(frameToSend);
                     }
                     else
                     {
@@ -81,12 +107,17 @@ namespace NPUDemoIntegrated.ViewModels
                     }
                 }
 
-                //if (isSendAuto)
-                //{
-                //    GlobalLogManager.Instance.ConsoleLog("isSendAutoConditionEntered");
-                //    _ = SendFramePeriodically();
-                //}
-
+                if (UtilsForMatImage.CheckReferenceBoxIntersection(frame, new OpenCvSharp.Rect(80, 205, 34, 34)))
+                {
+                    topMessage = "기준영역에 검지, 중지, 약지를 보여주세요"; // TEMPORARY MESSAGE FOR DEBUGGING
+                    // SendImage();
+                    // TODO:: MAKE A FLAG(IF DETECTION IS COMPLETED, MESSAGE WILL BE "이미지 전송 후 결과를 기다리는 중입니다.")
+                    // TODO:: MAKE A FLAG(IF PREDICTION IS COMPLETED, MESSAGE WILL BE "00% 확률로 빈혈/정상 입니다.")
+                }
+                else
+                {
+                    topMessage = "손의 위치를 기준선 안쪽으로 조정해주세요.";
+                }
             }
             catch (Exception ex)
             {
@@ -97,12 +128,6 @@ namespace NPUDemoIntegrated.ViewModels
             {
                 frame.Dispose();
             }
-        }
-
-        public void CompareWithPrevFrame()
-        {
-
-
         }
 
         public override void DeactivateModule(EModuleType targetModule)

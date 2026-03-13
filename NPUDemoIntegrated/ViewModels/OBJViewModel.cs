@@ -126,7 +126,7 @@ namespace NPUDemoIntegrated.ViewModels
                 }
                 else
                 {
-                    return "Red"; //Connected
+                    return "Red";      //Connected
                 }
             }
         }

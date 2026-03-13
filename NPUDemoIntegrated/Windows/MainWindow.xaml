@@ -7,7 +7,7 @@
         xmlns:viewModels="clr-namespace:NPUDemoIntegrated.ViewModels"
         xmlns:local="clr-namespace:NPUDemoIntegrated"
         mc:Ignorable="d"
-        Title="Doksan-NPU Demo" Height="{Binding windowHeight}" Width="{Binding windowWidth}" WindowStyle="None" ResizeMode="{Binding resizeMode}">
+        Title="Doksan-NPU Demo" Height="900" Width="1600" WindowStyle="None" ResizeMode ="CanMinimize">
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewModels:OBJViewModel}">
             <customControls:OBJDetectionView />

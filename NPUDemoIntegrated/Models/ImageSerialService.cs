@@ -84,16 +84,8 @@ namespace NPUDemoIntegrated.Models
                 {
                     dataLength = footerIndex;
 
-                    if (dataLength >= 10 && dataLength % 10 == 0)
-                    {
-                        pureData = receivedBuffer.GetRange(headerIndex + 4, dataLength);
-                        receivedBuffer.RemoveRange(0, headerIndex + footerIndex + 8);
-                    }
-                    else
-                    {
-                        GlobalLogManager.Instance.ConsoleLog("ERROR!! Data Length Not Available:: Clear Buffer");
-                        receivedBuffer.RemoveRange(0, headerIndex + footerIndex + 8);
-                    }
+                    pureData = receivedBuffer.GetRange(headerIndex + 4, dataLength);
+                    receivedBuffer.RemoveRange(0, headerIndex + footerIndex + 8);
                 }
                 else
                 {

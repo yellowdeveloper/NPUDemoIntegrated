@@ -8,6 +8,9 @@ namespace NPUDemoIntegrated.Utils
 {
     class UtilsForMatImage
     {
+        private static readonly int[] sobel_x = { -1, 0, 1, -2, 0, 2, -1, 0, 1 };
+        private static readonly int[] sobel_y = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
+
         /// <summary>
         /// Resize given Frame
         /// </summary>
@@ -175,6 +178,64 @@ namespace NPUDemoIntegrated.Utils
             finally
             {
                 tmp.Unlock();
+            }
+        }
+
+        public static unsafe bool CheckReferenceBoxIntersection(Mat frame, Rect region)
+        {
+            int width;
+            int height;
+            byte* refData;
+            // int totalBytes;
+
+            // sobel edge detection
+            using (Mat refRect = new Mat())
+            {
+                Cv2.CvtColor(frame[region], refRect, ColorConversionCodes.BGR2GRAY);
+
+                width = refRect.Width;
+                height = refRect.Height;
+
+                refData = (byte*)refRect.DataPointer;
+                // totalBytes = (int)refRect.Total() * refRect.ElemSize();
+            }
+
+            int thresh = 150;
+            int cnt = 0;
+
+            // GlobalLogManager.Instance.ConsoleLog($"Size :: {totalBytes}");
+
+            for (int i = 1; i < height - 1; i += 1)
+            {
+                for (int j = 1; j < width - 1; j += 1)
+                {
+                    int sobel_sum = 0;
+                    // sobel x
+                    for (int k = 0; k < sobel_x.Length; k++)
+                    {
+                        sobel_sum += refData[((i + (k / 3 - 1)) * width) + (j + (k % 3 - 1))] * sobel_x[k];
+                    }
+                    if (sobel_sum < 0) sobel_sum = -sobel_sum;
+                    if (sobel_sum > thresh) cnt++;
+
+                    // sobel y
+                    for (int k = 0; k < sobel_y.Length; k++)
+                    {
+                        sobel_sum += refData[((i + (k / 3 - 1)) * width) + (j + (k % 3 - 1))] * sobel_y[k];
+                    }
+                    if (sobel_sum < 0) sobel_sum = -sobel_sum;
+                    if (sobel_sum > thresh) cnt++;
+                }
+            }
+
+            if (cnt >= 15)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"ERROR!! EDGE DETECTED CNT :: {cnt}");
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
     }

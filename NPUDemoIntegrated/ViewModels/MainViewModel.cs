@@ -1,6 +1,7 @@
 ﻿using FTD2XX_NET;
 using NPUDemoIntegrated.GlobalManagers;
 using NPUDemoIntegrated.Models;
+using NPUDemoIntegrated.Models.HBLVModule;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
@@ -20,9 +21,28 @@ namespace NPUDemoIntegrated.ViewModels
         private EModuleType _currentModule;
         private string _currentViewName;
 
-        public double windowHeight;
-        public double windowWidth;
-        public ResizeMode resizeMode;
+        private double _windowHeight = 900;
+        private double _windowWidth = 1600;
+        private ResizeMode _resizeMode = ResizeMode.CanMinimize;
+
+        public double windowHeight
+        {
+            get { return _windowHeight; }
+            set { _windowHeight = value; OnPropertyChanged(); }
+        }
+
+        public double windowWidth
+        {
+            get { return _windowWidth; }
+            set { _windowWidth = value; OnPropertyChanged(); }
+        }
+
+        public ResizeMode resizeMode
+        {
+            get { return _resizeMode; }
+            set { _resizeMode = value; OnPropertyChanged(); }
+        }
+
         public object currentContext
         {
             get { return _currentContext; }
@@ -53,15 +73,17 @@ namespace NPUDemoIntegrated.ViewModels
             var serialConfig = GlobalConfigManager.Instance.serialConfig;
             var objConfig = GlobalConfigManager.Instance.objConfig;
             var irConfig = GlobalConfigManager.Instance.irConfig;
+            var hblvConfig = GlobalConfigManager.Instance.hblvConfig;
 
             // Inject Config to Service
             var objService = new OBJSerialService(serialConfig, objConfig, sp, ftdi, sharedStatus);
             var irService = new IRSerialService(serialConfig, irConfig, sp, ftdi, sharedStatus);
+            var hblvService = new HBLVSerialService(serialConfig, hblvConfig, sp, ftdi, sharedStatus);
 
             // Inject Service & Config to ViewModel
             OBJVM = new OBJViewModel(serialConfig, objConfig, objService);
             IRVM  = new IRViewModel(serialConfig, irConfig, irService);
-            HBLVVM = new HBLVViewModel(serialConfig, irConfig, irService);
+            HBLVVM = new HBLVViewModel(serialConfig, hblvConfig, hblvService);
 
             // --- Init ViewModel Status ---
             currentContext = OBJVM;
