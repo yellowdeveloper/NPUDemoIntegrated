@@ -5,17 +5,7 @@ using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
 using NPUDemoIntegrated.Utils;
 using OpenCvSharp;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -29,6 +19,15 @@ namespace NPUDemoIntegrated.ViewModels
         public SerialConfig serialConfig { get; }
 
         private readonly object frameLock = new object();
+        private bool isSending = false;
+        private bool isRefBoxValid = false;
+        private bool isImageValid = false;
+        private bool isDetectionComplete = false;
+        private int tryCount;
+
+        private float _pred = 0.0f;
+        private float _volt = 0.0f;
+        private float _amp = 0.0f;
 
         private WriteableBitmap bitmapTmp;
         private BitmapSource _bitmap;
@@ -40,9 +39,22 @@ namespace NPUDemoIntegrated.ViewModels
         private string _topMessage = "기준영역에 검지, 중지, 약지를 보여주세요";
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device hemoglobin level inference";
-        public override double windowHeight => 900;
-        public override double windowWidth => 1180;
-        public override ResizeMode resizeMode => ResizeMode.NoResize;
+
+        public float pred
+        {
+            get => _pred;
+            set { _pred = value; OnPropertyChanged(); }
+        }
+        public float volt
+        {
+            get => _volt;
+            set { _volt = value; OnPropertyChanged(); }
+        }
+        public float amp
+        {
+            get => _amp;
+            set { _amp = value; OnPropertyChanged(); }
+        }
 
         public string topMessage
         {
@@ -56,11 +68,34 @@ namespace NPUDemoIntegrated.ViewModels
             set { _bitmap = value; OnPropertyChanged(); }
         }
 
+        public string cn_dn
+        {
+            get
+            {
+                if (serialService.connectionState == EConnectionState.Disconnected)
+                {
+                    return "White";    //Disonnected
+                }
+                else
+                {
+                    return "Red";      //Connected
+                }
+            }
+        }
+
         public HBLVViewModel(SerialConfig _serialConfig, HBLVConfig _hblvConfig, HBLVSerialService service)
         {
             hblvConfig = _hblvConfig;
             serialConfig = _serialConfig;
             serialService = service;
+
+            serialService._sharedStatus.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SharedStatus.connectionState))
+                {
+                    OnPropertyChanged(nameof(cn_dn));
+                }
+            };
 
             ConnectCommand = new RelayCommand(param => {
                 if (serialService.Connect() == 1) ButtonCommand = DisconnectCommand;
@@ -74,6 +109,41 @@ namespace NPUDemoIntegrated.ViewModels
             });
 
             ButtonCommand = ConnectCommand;
+            serialService.PacketReceived += OnPacketReceived;
+        }
+
+        private async void SendImage()
+        {
+            //if (!isSending && tryCount >= 10 && serialService.connectionState == EConnectionState.WaitingForInference && isRefBoxValid && !isImageValid)
+            //{
+            //    serialService.connectionState = EConnectionState.Connected;
+            //    GlobalLogManager.Instance.ConsoleLog($"WARN.. SendFrame Re-Called: connection_status set to: {serialService.connectionState}");
+            //    GlobalLogManager.Instance.AddLogToFile("DEBUG", $"SendFrame Re-Called: connection_status set to: {serialService.connectionState}");
+            //}
+            if (serialService.connectionState == EConnectionState.Connected && !isSending && isRefBoxValid && !isImageValid)
+            {
+                isSending = true;
+                try
+                {
+                    GlobalLogManager.Instance.ConsoleLog("\nSerialCommunication Called");
+                    Mat converted = new Mat();
+                    Cv2.CvtColor(frameToSend, converted, ColorConversionCodes.BGR2RGB);
+                    // stopwatch.Restart();
+                    await serialService.SerialCommunication(converted);
+                    converted.Dispose();
+                }
+                finally
+                {
+                    isSending = false;
+                    isRefBoxValid = false;
+                }
+            }
+            else if (serialService.connectionState == EConnectionState.WaitingForInference)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"SendFrame Failed ... is_sending: {isSending}  connection_status: {serialService.connectionState} trc :: {tryCount}");
+                //tryCount++;
+                //GlobalLogManager.Instance.AddLogToFile("ERROR", $"SendFrame Failed ... is_sending: {_is_sending}  connection_status: {_connection_status}  try_count: {_try_count}");
+            }
         }
 
         private void OnFrameUpdate(Mat frame)
@@ -94,6 +164,8 @@ namespace NPUDemoIntegrated.ViewModels
                     UtilsForMatImage.WriteBufferDirectly(frame, bitmapTmp);
                 }));
 
+                if (isSending || serialService.connectionState != EConnectionState.Connected || isDetectionComplete) return;
+
                 lock (frameLock)
                 {
                     if (frameToSend != null && !frameToSend.IsDisposed)
@@ -107,15 +179,15 @@ namespace NPUDemoIntegrated.ViewModels
                     }
                 }
 
-                if (UtilsForMatImage.CheckReferenceBoxIntersection(frame, new OpenCvSharp.Rect(80, 205, 34, 34)))
+                if (UtilsForMatImage.CheckIfRegionWhite(frame, new OpenCvSharp.Rect(80, 205, 34, 34)))
                 {
-                    topMessage = "기준영역에 검지, 중지, 약지를 보여주세요"; // TEMPORARY MESSAGE FOR DEBUGGING
-                    // SendImage();
-                    // TODO:: MAKE A FLAG(IF DETECTION IS COMPLETED, MESSAGE WILL BE "이미지 전송 후 결과를 기다리는 중입니다.")
-                    // TODO:: MAKE A FLAG(IF PREDICTION IS COMPLETED, MESSAGE WILL BE "00% 확률로 빈혈/정상 입니다.")
+                    isRefBoxValid = true;
+                    topMessage = "이미지 전송 후 결과를 기다리는 중입니다";
+                    SendImage();
                 }
                 else
                 {
+                    isRefBoxValid = false;
                     topMessage = "손의 위치를 기준선 안쪽으로 조정해주세요.";
                 }
             }
@@ -130,14 +202,57 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
+        private void OnPacketReceived(predictionResultPacket received)
+        {
+            GlobalLogManager.Instance.ConsoleLog($"PacketReceived Called");
+            if (received.errorCode == 0x01)
+            {
+                topMessage = "손가락이 충분히 탐지되지 않았습니다.";
+                isImageValid = false;
+                return;
+            }
+
+            if (received.errorCode == 0x02)
+            {
+                topMessage = "손이 너무 가깝거나 위치가 잘못됐습니다.";
+                isImageValid = false;
+                return;
+            }
+
+            isImageValid = true;
+            isDetectionComplete = true;
+
+            this.amp = received.ampere;
+            this.volt = received.voltage;
+            this.pred = received.prediction;
+
+            topMessage = $"{pred*100.0f}% 확률로 빈혈 입니다.";
+        }
+
         public override void DeactivateModule(EModuleType targetModule)
         {
+            while (serialService.connectionState == EConnectionState.SendingImage)
+            {
+                GlobalLogManager.Instance.ConsoleLog($"now connection state ::{serialService.connectionState} wait until sending is finished");
+                Thread.Sleep(5);
+            }
+            GlobalLogManager.Instance.ConsoleLog($"now connection state ::{serialService.connectionState}");
+
+            Thread.Sleep(10);
+
+            serialService.SendModuleChangeNotice(targetModule);
+            serialService.SerialReceiveEventDispose();
+
+            Thread.Sleep(10);
+
             this.Dispose();
         }
 
 
         public override void ActivateModule()
         {
+            serialService.SerialReceiveEventSubscribe();
+
             webCamControl = new WebCamControl();
 
             webCamControl.FrameUpdate += OnFrameUpdate;
@@ -153,7 +268,10 @@ namespace NPUDemoIntegrated.ViewModels
                 webCamControl = null;
             }
 
+            serialService.PacketReceived -= OnPacketReceived;
+
             if (frameToSend != null) frameToSend.Dispose();
+
         }
     }
 }

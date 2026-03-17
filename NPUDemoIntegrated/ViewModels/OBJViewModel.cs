@@ -91,9 +91,6 @@ namespace NPUDemoIntegrated.ViewModels
         /// </summary>
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time camera input and on-device object detection inference";
-        public override double windowHeight => 900;
-        public override double windowWidth => 1600;
-        public override ResizeMode resizeMode => ResizeMode.CanMinimize;
 
         /// <summary>
         /// public Property for Display Image Binding (Real-Time)

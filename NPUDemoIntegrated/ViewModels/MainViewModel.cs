@@ -21,26 +21,26 @@ namespace NPUDemoIntegrated.ViewModels
         private EModuleType _currentModule;
         private string _currentViewName;
 
-        private double _windowHeight = 900;
-        private double _windowWidth = 1600;
-        private ResizeMode _resizeMode = ResizeMode.CanMinimize;
+        //private double _windowHeight = 900;
+        //private double _windowWidth = 1600;
+        //private ResizeMode _resizeMode = ResizeMode.CanMinimize;
 
-        public double windowHeight
-        {
-            get { return _windowHeight; }
-            set { _windowHeight = value; OnPropertyChanged(); }
-        }
+        //public double windowHeight
+        //{
+        //    get { return _windowHeight; }
+        //    set { _windowHeight = value; OnPropertyChanged(); }
+        //}
 
-        public double windowWidth
-        {
-            get { return _windowWidth; }
-            set { _windowWidth = value; OnPropertyChanged(); }
-        }
+        //public double windowWidth
+        //{
+        //    get { return _windowWidth; }
+        //    set { _windowWidth = value; OnPropertyChanged(); }
+        //}
 
-        public ResizeMode resizeMode
-        {
-            get { return _resizeMode; }
-            set { _resizeMode = value; OnPropertyChanged(); }
+        //public ResizeMode resizeMode
+        //{
+        //    get { return _resizeMode; }
+        //    set { _resizeMode = value; OnPropertyChanged(); }
         }
 
         public object currentContext
@@ -122,10 +122,6 @@ namespace NPUDemoIntegrated.ViewModels
                     currentContext = OBJVM;
                     currentModule = EModuleType.OBJ;
 
-                    windowHeight = OBJVM.windowHeight;
-                    windowWidth = OBJVM.windowWidth;
-                    resizeMode = OBJVM.resizeMode;
-
                     currentViewName = "OBJ";
                     OBJVM.ActivateModule();
                 }
@@ -145,10 +141,6 @@ namespace NPUDemoIntegrated.ViewModels
                     currentContext = IRVM;
                     currentModule = EModuleType.IR;
 
-                    windowHeight = IRVM.windowHeight;
-                    windowWidth = IRVM.windowWidth;
-                    resizeMode = IRVM.resizeMode;
-
                     currentViewName = "IR";
                     IRVM.ActivateModule();
                 }
@@ -165,10 +157,6 @@ namespace NPUDemoIntegrated.ViewModels
 
                     currentContext = HBLVVM;
                     currentModule = EModuleType.HBLV;
-
-                    windowHeight = HBLVVM.windowHeight;
-                    windowWidth = HBLVVM.windowWidth;
-                    resizeMode = HBLVVM.resizeMode;
 
                     currentViewName = "HBLV";
                     HBLVVM.ActivateModule();

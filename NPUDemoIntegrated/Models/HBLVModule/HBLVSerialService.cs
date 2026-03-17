@@ -13,6 +13,13 @@ using System.Threading.Tasks;
 
 namespace NPUDemoIntegrated.Models.HBLVModule
 {
+    struct predictionResultPacket
+    {
+        public float ampere;
+        public float voltage;
+        public float prediction;
+        public byte errorCode;
+    }
     internal class HBLVSerialService: ImageSerialService<HBLVConfig>
     {
         HBLVConfig _hblvConfig;
@@ -21,9 +28,10 @@ namespace NPUDemoIntegrated.Models.HBLVModule
             _hblvConfig = hblvConfig;
         }
 
-        public event Action<float, float, float> PredictionReceived;
+        public event Action<predictionResultPacket> PacketReceived;
 
         private readonly object _rcLock = new object();
+        private predictionResultPacket received;
 
         public Task SerialCommunication(Mat frame)
         {
@@ -118,6 +126,7 @@ namespace NPUDemoIntegrated.Models.HBLVModule
             if (pureData.Count < 12 && pureData[0] == 0xFF)
             {
                 ProcessError(pureData[1]);
+                connectionState = EConnectionState.Connected;
                 return;
             }
 
@@ -130,10 +139,10 @@ namespace NPUDemoIntegrated.Models.HBLVModule
 
             int modelType = pureData[0];
 
-            if (modelType != 1)
+            if (modelType != 2)
             {
-                GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 1");
-                SendModuleChangeNotice(EModuleType.IR);
+                GlobalLogManager.Instance.ConsoleLog($"ERROR!! ModelTypeError!! receivedType :: {modelType}, currentType :: 2");
+                SendModuleChangeNotice(EModuleType.HBLV);
                 Thread.Sleep(10);
                 connectionState = EConnectionState.Connected;
                 return;
@@ -157,7 +166,12 @@ namespace NPUDemoIntegrated.Models.HBLVModule
             float voltage = ConvertByteArray(voltageByte);
             float ampere = ConvertByteArray(ampereByte);
 
-            PredictionReceived?.Invoke(prediction, ampere, voltage);
+            received.prediction = prediction;
+            received.voltage = voltage;
+            received.ampere = ampere;
+            received.errorCode = 0;
+
+            PacketReceived?.Invoke(received);
 
             connectionState = EConnectionState.Connected;
         }
@@ -167,8 +181,12 @@ namespace NPUDemoIntegrated.Models.HBLVModule
             switch (errorCode)
             {
                 case 0x01:
+                    received.errorCode = 0x01;
+                    PacketReceived?.Invoke(received);
                     break;
                 case 0x02:
+                    received.errorCode = 0x02;
+                    PacketReceived?.Invoke(received);
                     break;
                 default:
                     break;

@@ -181,7 +181,7 @@ namespace NPUDemoIntegrated.Utils
             }
         }
 
-        public static unsafe bool CheckReferenceBoxIntersection(Mat frame, Rect region)
+        public static unsafe bool FindEdgeInRegion(Mat frame, Rect region)
         {
             int width;
             int height;
@@ -200,7 +200,7 @@ namespace NPUDemoIntegrated.Utils
                 // totalBytes = (int)refRect.Total() * refRect.ElemSize();
             }
 
-            int thresh = 150;
+            int thresh = 180;
             int cnt = 0;
 
             // GlobalLogManager.Instance.ConsoleLog($"Size :: {totalBytes}");
@@ -224,7 +224,11 @@ namespace NPUDemoIntegrated.Utils
                         sobel_sum += refData[((i + (k / 3 - 1)) * width) + (j + (k % 3 - 1))] * sobel_y[k];
                     }
                     if (sobel_sum < 0) sobel_sum = -sobel_sum;
-                    if (sobel_sum > thresh) cnt++;
+                    if (sobel_sum > thresh)
+                    {
+                        cnt++;
+                        //GlobalLogManager.Instance.ConsoleLog($"OVER THRESH :: {cnt}, {sobel_sum}");
+                    }
                 }
             }
 
@@ -235,6 +239,37 @@ namespace NPUDemoIntegrated.Utils
             }
             else
             {
+                return true;
+            }
+        }
+
+        public static bool CheckIfRegionWhite(Mat frame, Rect region)
+        {
+            using (Mat refRect = frame[region])
+            {
+                Scalar meanColor = Cv2.Mean(refRect);
+
+                double meanB = meanColor.Val0;
+                double meanG = meanColor.Val1;
+                double meanR = meanColor.Val2;
+
+                GlobalLogManager.Instance.ConsoleLog($"RefBox Mean Color - B:{meanB:F1}, G:{meanG:F1}, R:{meanR:F1}");
+
+                double maxColor = Math.Max(meanR, Math.Max(meanG, meanB));
+                double minColor = Math.Min(meanR, Math.Min(meanG, meanB));
+
+                if (meanB < 110 || meanG < 110 || meanR < 110)
+                {
+                    GlobalLogManager.Instance.ConsoleLog("ERROR!! REF REGION IS TOO DARK!");
+                    return false;
+                }
+
+                if (maxColor - minColor > 35)
+                {
+                    GlobalLogManager.Instance.ConsoleLog($"ERROR!! REF REGION IS NOT WHITE!!");
+                    return false;
+                }
+
                 return true;
             }
         }
