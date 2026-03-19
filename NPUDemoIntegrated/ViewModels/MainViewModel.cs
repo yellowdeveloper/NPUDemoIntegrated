@@ -21,28 +21,6 @@ namespace NPUDemoIntegrated.ViewModels
         private EModuleType _currentModule;
         private string _currentViewName;
 
-        //private double _windowHeight = 900;
-        //private double _windowWidth = 1600;
-        //private ResizeMode _resizeMode = ResizeMode.CanMinimize;
-
-        //public double windowHeight
-        //{
-        //    get { return _windowHeight; }
-        //    set { _windowHeight = value; OnPropertyChanged(); }
-        //}
-
-        //public double windowWidth
-        //{
-        //    get { return _windowWidth; }
-        //    set { _windowWidth = value; OnPropertyChanged(); }
-        //}
-
-        //public ResizeMode resizeMode
-        //{
-        //    get { return _resizeMode; }
-        //    set { _resizeMode = value; OnPropertyChanged(); }
-        }
-
         public object currentContext
         {
             get { return _currentContext; }
@@ -154,6 +132,8 @@ namespace NPUDemoIntegrated.ViewModels
                     {
                         HBLVVM.ButtonCommand = HBLVVM.DisconnectCommand;
                     }
+
+                    // Application.Current.MainWindow.Width = 800;
 
                     currentContext = HBLVVM;
                     currentModule = EModuleType.HBLV;

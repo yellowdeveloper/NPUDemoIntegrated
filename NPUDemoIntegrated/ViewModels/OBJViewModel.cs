@@ -335,6 +335,7 @@ namespace NPUDemoIntegrated.ViewModels
         {
             try
             {
+                if (Application.Current == null) return;
                 Application.Current.Dispatcher.Invoke(new Action(() => {
                     if (bitmapTmp == null || bitmapTmp.PixelWidth != frame.Width || bitmapTmp.PixelHeight != frame.Height)
                     {

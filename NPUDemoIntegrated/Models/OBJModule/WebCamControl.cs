@@ -36,7 +36,7 @@ namespace NPUDemoIntegrated.Models.OBJModule
 
         private async Task CaptureFrame(CancellationToken token)
         {
-            while (_capture.IsOpened() && !token.IsCancellationRequested)
+            while (_capture != null && _capture.IsOpened() && !token.IsCancellationRequested)
             {
                 using (var frame = new Mat())
                 {
