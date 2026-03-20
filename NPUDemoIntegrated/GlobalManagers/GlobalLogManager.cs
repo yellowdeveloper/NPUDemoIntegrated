@@ -49,7 +49,7 @@ namespace NPUDemoIntegrated.GlobalManagers
             [CallerLineNumber] int lineNumber = 0,
             [CallerMemberName] string memberName = "")
         {
-            //return;
+            return;
             string now_time = DateTime.Now.ToString("HH:mm:ss");
             string fileName = Path.GetFileName(filePath);
             string source_line = $"[{now_time}]:{fileName}:{memberName}(): Line {lineNumber}";

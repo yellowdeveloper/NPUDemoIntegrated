@@ -199,15 +199,15 @@ namespace NPUDemoIntegrated.ViewModels
             {
                 if (Application.Current == null) return;
                 Application.Current.Dispatcher.Invoke(new Action(() => {
+                    OpenCvSharp.Rect roi = new OpenCvSharp.Rect(110, 80, 420, 320);
                     if (bitmapTmp == null || bitmapTmp.PixelWidth != frame.Width || bitmapTmp.PixelHeight != frame.Height)
                     {
                         //OpenCvSharp.Rect white_ref = new OpenCvSharp.Rect(70, 205, 34, 34);
                         //Cv2.Rectangle(frame, white_ref, Scalar.Red, 1);
 
-                        bitmapTmp = new WriteableBitmap(frame.Width, frame.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
+                        bitmapTmp = new WriteableBitmap(roi.Width, roi.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
                         bitmapShow = bitmapTmp;
                     }
-                    OpenCvSharp.Rect roi = new OpenCvSharp.Rect(110, 80, 420, 320);
                     using (Mat center_cropped = frame[roi])
                     {
                         UtilsForMatImage.WriteBufferDirectly(center_cropped, bitmapTmp);
@@ -233,7 +233,7 @@ namespace NPUDemoIntegrated.ViewModels
                     }
                 }
 
-                if (UtilsForMatImage.CheckIfRegionWhite(frame, new OpenCvSharp.Rect(70, 205, 34, 34)))
+                if (UtilsForMatImage.CheckIfRegionWhite(frame, new OpenCvSharp.Rect(180, 285, 34, 34)))
                 {
                     isRefBoxValid = true;
                     topMessageLeft = "이미지 전송 후 결과를 기다리는 중입니다";
