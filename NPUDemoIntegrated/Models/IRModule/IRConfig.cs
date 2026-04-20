@@ -15,6 +15,7 @@ namespace NPUDemoIntegrated.Models.IRModule
         private float _maxTemp = 40.0f;
 
         private int _resolution = 128;
+        private bool _useLepton = false;
 
         public enum EClassArray { person, face }
         
@@ -37,6 +38,11 @@ namespace NPUDemoIntegrated.Models.IRModule
         {
             get { return _resolution; }
             set { _resolution = value; OnPropertyChanged(); }
+        }
+        public bool useLepton
+        {
+            get { return _useLepton; }
+            set { _useLepton = value; OnPropertyChanged(); }
         }
     }
 }
