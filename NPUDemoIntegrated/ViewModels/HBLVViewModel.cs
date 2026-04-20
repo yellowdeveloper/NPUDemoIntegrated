@@ -242,7 +242,7 @@ namespace NPUDemoIntegrated.ViewModels
                 else
                 {
                     isRefBoxValid = false;
-                    topMessageLeft = "손의 위치를 기준선 안쪽으로 조정해주세요.";
+                    topMessageLeft = "배경이 흰색이 아니거나, 너무 어둡습니다.";
                 }
             }
             catch (Exception ex)
@@ -327,13 +327,13 @@ namespace NPUDemoIntegrated.ViewModels
             this.pred = received.prediction * 100.0f;
 
             if (pred <= 30) {
-                topMessageRight = $"{100.0f - pred}% 확률로 정상 입니다.";
+                topMessageRight = $"높은 확률로 정상 입니다.";
             }
             else if (pred >= 70) {
-                topMessageRight = $"{pred}% 확률로 빈혈 입니다.";
+                topMessageRight = $"높은 확률로 빈혈 입니다.";
             }
             else {
-                topMessageRight = $"정확한 진료가 어려운 표본입니다.";
+                topMessageRight = $"정확한 진료가 어려운 표본입니다. 병원에 방문해주세요.";
             }
             topMessageLeft = $"진단이 완료되었습니다.";
 
