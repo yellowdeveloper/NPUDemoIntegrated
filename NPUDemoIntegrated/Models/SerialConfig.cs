@@ -22,6 +22,7 @@ namespace NPUDemoIntegrated.Models
         private bool _isSendAll = false;
         private int _chunkSize = 256;
         private int _probThres = 50;
+        private bool _dtrEnable = true;
         private EImageMode _imgMode = EImageMode.RESIZE;
 
         public string portName

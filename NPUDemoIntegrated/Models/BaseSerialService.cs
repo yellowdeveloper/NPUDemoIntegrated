@@ -46,6 +46,8 @@ namespace NPUDemoIntegrated.Models
                     sp.Parity = _serialConfig.parity;
                     sp.DataBits = _serialConfig.dataBits;
                     sp.StopBits = _serialConfig.stopBits;
+                    // Communicate With nrf Dongle > enable dtr
+                    sp.DtrEnable = true;
 
                     GlobalLogManager.Instance.ConsoleLog($"Connecting to Serial Port(Common:{sp.PortName})...");
 

@@ -8,6 +8,7 @@ using System.Device.Gpio;
 using System.Device.Spi;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace NPUDemoIntegrated.Models.IRModule
 
         bool isWritingRawBuffer = false;
 
-        public event Action<byte[], int> FrameUpdate;
+        public event Action<byte[]> FrameUpdate;
 
         public void LeptonInitialize()
         {
@@ -169,11 +170,12 @@ namespace NPUDemoIntegrated.Models.IRModule
 
                 if (segmentIndex == 3)
                 {
+                    Buffer.BlockCopy(lepton_image, (imageIndexCount * 39360), tmp, 0, 39360);
+
                     imageIndexCount = (imageIndexCount + 1) % 2;
                     readIndexCount = (readIndexCount + 1) % 2;
 
-                    Buffer.BlockCopy(lepton_image, (imageIndexCount * 39360), tmp, 0, 39360);
-                    FrameUpdate?.Invoke(tmp, readIndexCount);
+                    FrameUpdate?.Invoke(tmp);
                 }
             }
         }

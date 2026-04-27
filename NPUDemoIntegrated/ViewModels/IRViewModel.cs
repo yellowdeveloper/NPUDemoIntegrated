@@ -220,10 +220,14 @@ namespace NPUDemoIntegrated.ViewModels
 
             if (irConfig.useLepton)
             {
-                leptonService = new LeptonService();
+                // Real
+                //leptonService = new LeptonService();
 
-                leptonService.FrameUpdate += OnFrameUpdate;
-                leptonService.LeptonInitialize();
+                //leptonService.FrameUpdate += OnFrameUpdate;
+                
+                // leptonService.LeptonInitialize();
+                // Test
+                Task.Run(() => DummyLoopAsync());
             }            
 
             _processedBuffer = new float[irConfig.resolution * irConfig.resolution];
@@ -390,6 +394,8 @@ namespace NPUDemoIntegrated.ViewModels
                 try
                 {
                     Debug.Write("\nSerialCommunication Called");
+                    //Cv2.ImShow("Debug - Sent Image", converted);
+                    //Cv2.WaitKey(0);
                     await _serialService.SerialCommunication(converted);
                 }
                 finally
@@ -485,6 +491,25 @@ namespace NPUDemoIntegrated.ViewModels
                 colorBitmap.WritePixels(new Int32Rect(0, 0, 160, 120), lepton_render, 160 * 3, 0);
                 OnPropertyChanged(nameof(colorBitmap));
 
+                lock (_frame_lock)
+                {
+                    if (colorMat == null || colorMat.Rows != 160 || colorMat.Channels() != 4)
+                    {
+                        colorMat?.Dispose();
+                        colorMat = new Mat(160, 160, MatType.CV_8UC4);
+                    }
+
+                    using (Mat rawMat = new Mat(120, 160, MatType.CV_8UC3))
+                    using (Mat resizedMat = new Mat())
+                    {
+                        System.Runtime.InteropServices.Marshal.Copy(lepton_render, 0, rawMat.Data, lepton_render.Length);
+
+                        Cv2.Resize(rawMat, resizedMat, new OpenCvSharp.Size(160, 160), 0, 0, InterpolationFlags.Linear);
+                        Cv2.CvtColor(resizedMat, colorMat, ColorConversionCodes.BGR2BGRA);
+                    }
+                }
+
+                isUpdated = true;
                 return;
             }
 
@@ -634,6 +659,12 @@ namespace NPUDemoIntegrated.ViewModels
 
         private void FindMaxTempInFace(IRConfig.EClassArray cls, OpenCvSharp.Rect box)
         {
+            if (irConfig.useLepton || _serialService.Data.pixelTempArray == null)
+            {
+                pixelMax = 0.0f;
+                return;
+            }
+
             double downsizeRatio = 32.0f / irConfig.resolution;
             
             if (cls == IRConfig.EClassArray.face)
@@ -710,7 +741,7 @@ namespace NPUDemoIntegrated.ViewModels
         }
 
         // Lepton Using Method
-        private void OnFrameUpdate(byte[] evt, int index)
+        private void OnFrameUpdate(byte[] evt)
         {
             try
             {
@@ -759,14 +790,67 @@ namespace NPUDemoIntegrated.ViewModels
                 int ofs_g = 3 * value + 1; if (colormap.Length <= ofs_g) ofs_g = colormap.Length - 1;
                 int ofs_b = 3 * value + 2; if (colormap.Length <= ofs_b) ofs_b = colormap.Length - 1;
 
-                lepton_render[imageBufferIndex + 0] = (byte)colormap[ofs_r];
+                lepton_render[imageBufferIndex + 0] = (byte)colormap[ofs_b];
                 lepton_render[imageBufferIndex + 1] = (byte)colormap[ofs_g];
-                lepton_render[imageBufferIndex + 2] = (byte)colormap[ofs_b];
+                lepton_render[imageBufferIndex + 2] = (byte)colormap[ofs_r];
 
                 imageBufferIndex += 3;
             }
 
             //Console.WriteLine("");
+        }
+
+        private void LoadDummyImageToRenderBuffer(string imagePath)
+        {
+            if (!System.IO.File.Exists(imagePath))
+            {
+                GlobalLogManager.Instance.ConsoleLog($"Test image not found: {imagePath}");
+                return;
+            }
+
+            using (Mat img = Cv2.ImRead(imagePath, ImreadModes.Color))
+            {
+                if (img.Empty()) return;
+
+                using (Mat resized = new Mat())
+                {
+                    Cv2.Resize(img, resized, new OpenCvSharp.Size(160, 120));
+
+                    System.Runtime.InteropServices.Marshal.Copy(resized.Data, lepton_render, 0, 57600);
+                }
+            }
+        }
+
+        private async Task DummyLoopAsync()
+        {
+            string dummyImagePath = @"C:\Users\user\Downloads\doksan_dev\lepton_545.png";
+
+            while (true)
+            {
+                Console.WriteLine($"[DummyLoop] Loading dummy image to render buffer...");
+                try
+                {
+                    LoadDummyImageToRenderBuffer(dummyImagePath);
+
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            if (colorBitmap == null || colorBitmap.PixelWidth != 160 || colorBitmap.PixelHeight != 120)
+                            {
+                                colorBitmap = new WriteableBitmap(160, 120, 96, 96, System.Windows.Media.PixelFormats.Bgr24, null);
+                            }
+                            UpdateColorBitmap();
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    GlobalLogManager.Instance.ConsoleLog($"Dummy Loop Error :: {ex}");
+                }
+
+                await Task.Delay(500);
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ namespace NPUDemoIntegrated.Models.IRModule
         private float _maxTemp = 40.0f;
 
         private int _resolution = 128;
-        private bool _useLepton = false;
+        private bool _useLepton = true;
 
         public enum EClassArray { person, face }
         

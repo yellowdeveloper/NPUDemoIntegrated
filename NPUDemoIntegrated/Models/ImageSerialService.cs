@@ -245,7 +245,7 @@ namespace NPUDemoIntegrated.Models
             GlobalLogManager.Instance.ConsoleLog($"SendModuleChangeNotice Called in OBJService, TargetModule is ::{moduleType}");
 
             GlobalLogManager.Instance.ConsoleLog($"Send 0x{MT:X2} Byte");
-            _spComm.Write(new byte[] { MT }, 0, 1);
+            _spComm.Write(new byte[] { MT, 0x0D, 0x0A }, 0, 3);
         }
 
         public void SerialReceiveEventDispose()

@@ -105,7 +105,10 @@ namespace NPUDemoIntegrated.Models.IRModule
 
                 // Cv2.ImEncode(".jpg", frame, out image_to_send);
                 // JPG = compressed foramt >> Encode to bmp. But, bmp contains header info >> Do not use ImEncode
+
                 int img_size = (_irConfig.resolution * _irConfig.resolution * 3);
+                if (_irConfig.useLepton) img_size = 160 * 160 * 3;
+
                 if (imageToSend == null || imageToSend.Length != img_size)
                 {
                     imageToSend = new byte[img_size];
@@ -237,9 +240,11 @@ namespace NPUDemoIntegrated.Models.IRModule
 
                 double ratio_x;
                 double ratio_y;
+                
+                int res = _irConfig.useLepton ? 160 : _irConfig.resolution;
 
-                ratio_x = 512.0f / _irConfig.resolution;
-                ratio_y = 512.0f / _irConfig.resolution;
+                ratio_x = 512.0f / res;
+                ratio_y = 512.0f / res;
 
                 x_new = (int)(x * ratio_x);
                 y_new = (int)(y * ratio_y);
