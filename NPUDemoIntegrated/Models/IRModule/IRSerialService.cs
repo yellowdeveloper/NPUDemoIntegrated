@@ -243,8 +243,16 @@ namespace NPUDemoIntegrated.Models.IRModule
                 
                 int res = _irConfig.useLepton ? 160 : _irConfig.resolution;
 
-                ratio_x = 512.0f / res;
-                ratio_y = 512.0f / res;
+                if (_irConfig.useLepton)
+                {
+                    ratio_x = 4.0f;
+                    ratio_y = 480.0f/160.0f;
+                }
+                else
+                {
+                    ratio_x = 512.0f / res;
+                    ratio_y = 512.0f / res;
+                }
 
                 x_new = (int)(x * ratio_x);
                 y_new = (int)(y * ratio_y);

@@ -31,6 +31,8 @@ namespace NPUDemoIntegrated.Models.IRModule
         byte[] lepton_image = new byte[78720];
         byte[] tmp = new byte[39360];
 
+        private CancellationTokenSource _cts;
+
         int imageIndexCount = 0;
         int readIndexCount = -1;
 
@@ -41,7 +43,8 @@ namespace NPUDemoIntegrated.Models.IRModule
         public void LeptonInitialize()
         {
             Connect();
-            Task.Run(() => CommunicateLepton3());
+            _cts = new CancellationTokenSource();
+            Task.Run(() => CommunicateLepton3(_cts.Token));
         }
 
         public int Connect()
@@ -84,7 +87,7 @@ namespace NPUDemoIntegrated.Models.IRModule
             return 1;
         }
 
-        public async Task CommunicateLepton3()
+        public async Task CommunicateLepton3(CancellationToken cts)
         {
             Console.WriteLine($"make_frame");
 
@@ -93,7 +96,7 @@ namespace NPUDemoIntegrated.Models.IRModule
             int discardCount = 0;
             int invalidSegmentCount = 0;
 
-            while (true)
+            while (!cts.IsCancellationRequested)
             {
                 if (spi == null && ft232h != null)
                 {
@@ -219,6 +222,30 @@ namespace NPUDemoIntegrated.Models.IRModule
                     Console.WriteLine($"Exception Occurred while disconnecting :: {ex}");
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            if (_cts != null)
+            {
+                try
+                {
+                    _cts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                catch (AggregateException)
+                {
+                }
+                finally
+                {
+                    try { _cts.Dispose(); } catch { }
+                    _cts = null;
+                }
+            }
+
+            Disconnect();
         }
     }
 }

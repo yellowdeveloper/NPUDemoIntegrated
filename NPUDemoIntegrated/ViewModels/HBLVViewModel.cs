@@ -142,7 +142,6 @@ namespace NPUDemoIntegrated.ViewModels
             //MeasureCommand = new RelayCommand(param => {
 
             ButtonCommand = ConnectCommand;
-            serialService.PacketReceived += OnPacketReceived;
         }
 
         private async void SendImage()
@@ -369,6 +368,8 @@ namespace NPUDemoIntegrated.ViewModels
             webCamControl = new WebCamControl();
 
             webCamControl.FrameUpdate += OnFrameUpdate;
+            serialService.PacketReceived += OnPacketReceived;
+
             webCamControl.WebCamInitialize();
         }
 

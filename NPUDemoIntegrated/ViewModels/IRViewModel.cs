@@ -1,4 +1,6 @@
-﻿using NPUDemoIntegrated.GlobalManagers;
+﻿using Iot.Device.Mcp25xxx;
+using Iot.Device.Nmea0183;
+using NPUDemoIntegrated.GlobalManagers;
 using NPUDemoIntegrated.Models;
 using NPUDemoIntegrated.Models.IRModule;
 using NPUDemoIntegrated.Models.OBJModule;
@@ -9,6 +11,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -93,6 +96,9 @@ namespace NPUDemoIntegrated.ViewModels
         private bool _isSending = false;
         private int _tryCount = 0;
         private bool isUpdated = false;
+
+        private CancellationTokenSource dummyToken;
+        private int dummyCount = 0;
 
         public override string title => "Doksan NPU Real-Time Vision AI Demonstration";
         public override string subTitle => "Real-time Infrared Image input and on-device object detection inference";
@@ -216,19 +222,7 @@ namespace NPUDemoIntegrated.ViewModels
                 _serialService.StartMeasure();
             };
 
-            colorBitmap = new WriteableBitmap(irConfig.resolution, irConfig.resolution, 96, 96, System.Windows.Media.PixelFormats.Bgr32, null);
-
-            if (irConfig.useLepton)
-            {
-                // Real
-                //leptonService = new LeptonService();
-
-                //leptonService.FrameUpdate += OnFrameUpdate;
-                
-                // leptonService.LeptonInitialize();
-                // Test
-                Task.Run(() => DummyLoopAsync());
-            }            
+            colorBitmap = new WriteableBitmap(irConfig.resolution, irConfig.resolution, 96, 96, System.Windows.Media.PixelFormats.Bgr32, null); 
 
             _processedBuffer = new float[irConfig.resolution * irConfig.resolution];
 
@@ -380,7 +374,8 @@ namespace NPUDemoIntegrated.ViewModels
                 }
 
                 Mat converted = new Mat();
-                Cv2.CvtColor(mat_tmp, converted, ColorConversionCodes.BGRA2RGB);
+                Cv2.Resize(mat_tmp, converted, new OpenCvSharp.Size(160, 160), 0, 0, InterpolationFlags.Linear);
+                Cv2.CvtColor(converted, converted, ColorConversionCodes.BGRA2RGB);
                 //colorMatShow = resized; // test
 
                 lock (_send_lock)
@@ -437,7 +432,8 @@ namespace NPUDemoIntegrated.ViewModels
             Mat resized = new Mat();
             lock (_bbox_lock)
             {
-                resized = UtilsForMatImage.Resize(frame_to_draw, 512);
+                if (irConfig.useLepton) Cv2.Resize(frame_to_draw, resized, new OpenCvSharp.Size(640, 480), 0, 0, InterpolationFlags.Linear);
+                else resized = UtilsForMatImage.Resize(frame_to_draw, 512);
 
                 foreach (var box in _bbox)
                 {
@@ -500,12 +496,9 @@ namespace NPUDemoIntegrated.ViewModels
                     }
 
                     using (Mat rawMat = new Mat(120, 160, MatType.CV_8UC3))
-                    using (Mat resizedMat = new Mat())
                     {
                         System.Runtime.InteropServices.Marshal.Copy(lepton_render, 0, rawMat.Data, lepton_render.Length);
-
-                        Cv2.Resize(rawMat, resizedMat, new OpenCvSharp.Size(160, 160), 0, 0, InterpolationFlags.Linear);
-                        Cv2.CvtColor(resizedMat, colorMat, ColorConversionCodes.BGR2BGRA);
+                        Cv2.CvtColor(rawMat, colorMat, ColorConversionCodes.BGR2BGRA);
                     }
                 }
 
@@ -659,7 +652,54 @@ namespace NPUDemoIntegrated.ViewModels
 
         private void FindMaxTempInFace(IRConfig.EClassArray cls, OpenCvSharp.Rect box)
         {
-            if (irConfig.useLepton || _serialService.Data.pixelTempArray == null)
+            if (irConfig.useLepton)
+            {
+                double downsizeRatioX = 160.0f / 640.0f;
+                double downsizeRatioY = 120.0f / 480.0f;
+
+                if (cls == IRConfig.EClassArray.face)
+                {
+                    int orgTLX = box.X;
+                    int orgTLY = box.Y;
+                    int orgBRX = box.X + box.Width - 1;
+                    int orgBRY = box.Y + box.Height - 1;
+
+                    int newTLX = (int)Math.Round(orgTLX * downsizeRatioX);
+                    int newTLY = (int)Math.Round(orgTLY * downsizeRatioY);
+                    int newBRX = (int)Math.Round(orgBRX * downsizeRatioX);
+                    int newBRY = (int)Math.Round(orgBRY * downsizeRatioY);
+
+                    newTLX = Math.Clamp(newTLX, 0, 159);
+                    newTLY = Math.Clamp(newTLY, 0, 119);
+                    newBRX = Math.Clamp(newBRX, 0, 159);
+                    newBRY = Math.Clamp(newBRY, 0, 119);
+
+                    float maxTemp = 0.0f;
+
+                    for (int y = newTLY; y <= newBRY; y++)
+                    {
+                        for (int x = newTLX; x <= newBRX; x++)
+                        {
+                            int pixelIdx = (y * 160 + x) * 3;
+
+                            byte b = lepton_render[pixelIdx];
+                            byte g = lepton_render[pixelIdx + 1];
+                            byte r = lepton_render[pixelIdx + 2];
+
+                            float temp = DecalcTemp(r, g, b);
+
+                            if (temp > maxTemp)
+                            {
+                                maxTemp = temp;
+                            }
+                        }
+                    }
+                    pixelMax = maxTemp;
+                }
+                return;
+            }
+
+            if (_serialService.Data.pixelTempArray == null)
             {
                 pixelMax = 0.0f;
                 return;
@@ -722,17 +762,44 @@ namespace NPUDemoIntegrated.ViewModels
 
             _serialService.SerialReceiveEventDispose();
 
+            dummyToken.Cancel();
+            dummyToken.Dispose();
+            dummyToken = null;
+
             Thread.Sleep(10);
         }
 
 
         public override void ActivateModule()
         {
+            if (irConfig.useLepton)
+            {
+                // Real
+                //leptonService = new LeptonService();
+
+                //leptonService.FrameUpdate += OnFrameUpdate;
+
+                // leptonService.LeptonInitialize();
+                // Test
+                dummyToken = new CancellationTokenSource();
+                Task.Run(() => DummyLoopAsync(dummyToken.Token));
+            }
+
             _serialService.SerialReceiveEventSubscribe();
         }
 
         public override void Dispose()
         {
+            if (irConfig.useLepton)
+            {
+                // Real
+                //leptonService.FrameUpdate -= OnFrameUpdate;
+                //leptonService = null
+
+                // Test
+                dummyToken.Cancel();
+            }
+
             _timer.Dispose();
             _serialService.PointsReceived -= OnPointsReceived;
 
@@ -765,8 +832,8 @@ namespace NPUDemoIntegrated.ViewModels
 
         private void MapInferno(byte[] frame)
         {
-            float min = 29500.0f;
-            float max = 32800.0f;
+            float min = irConfig.minTemp * 100.0f + 27000.0f;
+            float max = irConfig.maxTemp * 100.0f + 27000.0f;
             float scale = 255.0f / (max - min);
 
             int imageBufferIndex = 0;
@@ -800,6 +867,44 @@ namespace NPUDemoIntegrated.ViewModels
             //Console.WriteLine("");
         }
 
+        private float DecalcTemp(int r, int g, int b)
+        {
+            int index = 0;
+            int minDistance = 0;
+
+            for (int i = 0; i < 256; i++)
+            {
+                int MapR = (int)colormap[3 * i + 0];
+                int MapG = (int)colormap[3 * i + 1];
+                int MapB = (int)colormap[3 * i + 2];
+
+                int distanceR = r - MapR;
+                int distanceG = g - MapG;
+                int distanceB = b - MapB;
+
+                int totalDistance = distanceR*distanceR + distanceG*distanceG + distanceB*distanceB;
+
+                if (totalDistance == 0)
+                {
+                    index = i;
+                    break;
+                }
+
+                if (totalDistance < minDistance)
+                {
+                    minDistance = totalDistance;
+                    index = i;
+                }
+            }
+
+            float min = irConfig.minTemp * 100.0f + 27000.0f;
+            float max = irConfig.maxTemp * 100.0f + 27000.0f;
+
+            float rawValue = index * ((max - min) / 255.0f) + min;
+
+            return (rawValue - 27000.0f) / 100.0f;
+        }
+
         private void LoadDummyImageToRenderBuffer(string imagePath)
         {
             if (!System.IO.File.Exists(imagePath))
@@ -821,12 +926,17 @@ namespace NPUDemoIntegrated.ViewModels
             }
         }
 
-        private async Task DummyLoopAsync()
+        private async Task DummyLoopAsync(CancellationToken cts)
         {
-            string dummyImagePath = @"C:\Users\user\Downloads\doksan_dev\lepton_545.png";
+            string dummyImagePath;
 
-            while (true)
+            while (!cts.IsCancellationRequested)
             {
+                if (dummyCount % 4 == 0)
+                    dummyImagePath = @"C:\Users\user\Downloads\doksan_dev\lepton_test_0.png";
+                else
+                    dummyImagePath = @$"C:\Users\user\Downloads\doksan_dev\lepton_t{dummyCount % 4}.png";
+
                 Console.WriteLine($"[DummyLoop] Loading dummy image to render buffer...");
                 try
                 {
@@ -843,6 +953,7 @@ namespace NPUDemoIntegrated.ViewModels
                             UpdateColorBitmap();
                         });
                     }
+                    dummyCount++;
                 }
                 catch (Exception ex)
                 {

@@ -21,10 +21,10 @@ namespace NPUDemoIntegrated.Models.HBLVModule
         public byte errorCode;
         public List<Rect> bboxs;
     }
-    internal class HBLVSerialService: ImageSerialService<HBLVConfig>
+    internal class HBLVSerialService: ImageSerialService<SerialConfig>
     {
         HBLVConfig _hblvConfig;
-        public HBLVSerialService(SerialConfig serialConfig, HBLVConfig hblvConfig, SerialPort sp, FTDI ftdi, SharedStatus stat) : base(hblvConfig, sp, ftdi, stat)
+        public HBLVSerialService(SerialConfig serialConfig, HBLVConfig hblvConfig, SerialPort sp, FTDI ftdi, SharedStatus stat) : base(serialConfig, sp, ftdi, stat)
         {
             _hblvConfig = hblvConfig;
         }

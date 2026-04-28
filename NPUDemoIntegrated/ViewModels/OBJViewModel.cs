@@ -484,6 +484,8 @@ namespace NPUDemoIntegrated.ViewModels
             webCamControl = new WebCamControl();
 
             webCamControl.FrameUpdate += OnFrameUpdate;
+            serialService.PointsReceived += OnPointsReceived;
+
             webCamControl.WebCamInitialize();
 
             tmpMat = new Mat();

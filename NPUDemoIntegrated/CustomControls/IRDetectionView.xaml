@@ -54,8 +54,8 @@
                             <Border Grid.Row="1" Background="Black" Margin="5,5,5,5" CornerRadius="2.5">
                                 <Grid Background="Transparent">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="183*"/>
-                                        <ColumnDefinition Width="595*"/>
+                                        <ColumnDefinition Width="210*"/>
+                                        <ColumnDefinition Width="622*"/>
                                     </Grid.ColumnDefinitions>
                                     <Viewbox Grid.ColumnSpan="2">
                                         <Image Source="{Binding bitmapShow}"/>

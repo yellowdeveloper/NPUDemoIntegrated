@@ -72,6 +72,10 @@
                                                         Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="IR">
                                                         <Setter Property="Text" Value="IR Detection" />
                                                     </DataTrigger>
+                                                    <DataTrigger
+                                                        Binding="{Binding DataContext.currentViewName, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="HBLV">
+                                                        <Setter Property="Text" Value="AN Classi" />
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
